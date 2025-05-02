@@ -7,7 +7,7 @@
         <Menu class="javax.swing.JMenu" name="menuTrangChu">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/image/black_home32.png"/>
+              <Image iconType="3" name="/quanlytaichinh/ui/image/black_home32.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value="Trang ch&#x1ee7;"/>
           </Properties>
@@ -112,7 +112,7 @@
               <Color blue="ff" green="ff" red="ff" type="rgb"/>
             </Property>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/image/icons8-user-32.png"/>
+              <Image iconType="3" name="/quanlytaichinh/ui/image/icons8-user-32.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value="User_name"/>
           </Properties>
@@ -270,7 +270,7 @@
             <Component class="javax.swing.JLabel" name="lbChonChuDeTimKiem">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
+                  <Image iconType="3" name="/quanlytaichinh/ui/image/k&#xed;nh l&#xfa;p.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Ch&#x1ecd;n ch&#x1ee7; &#x111;&#x1ec1; t&#xec;m ki&#x1ebf;m"/>
               </Properties>
@@ -296,17 +296,11 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbNhapThongTinTimKiem">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
-                </Property>
                 <Property name="text" type="java.lang.String" value="Nh&#x1ead;p th&#xf4;ng tin t&#xec;m ki&#x1ebf;m"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="lbTuNgay">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
-                </Property>
                 <Property name="text" type="java.lang.String" value="T&#x1eeb; ng&#xe0;y"/>
               </Properties>
             </Component>
@@ -317,9 +311,6 @@
             </Component>
             <Component class="javax.swing.JLabel" name="lbDenNgay">
               <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
-                </Property>
                 <Property name="text" type="java.lang.String" value="&#x110;&#x1ebf;n ng&#xe0;y"/>
                 <Property name="toolTipText" type="java.lang.String" value=""/>
               </Properties>

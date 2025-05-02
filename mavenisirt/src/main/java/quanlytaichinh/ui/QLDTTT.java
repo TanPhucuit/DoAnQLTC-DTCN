@@ -60,7 +60,7 @@ public class QLDTTT extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(0, 102, 51));
 
         lbUserName.setForeground(new java.awt.Color(255, 255, 255));
-        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/icons8-user-32.png"))); // NOI18N
+        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/icons8-user-32.png"))); // NOI18N
         lbUserName.setText("User_name");
 
         lbQuanLyDauTuTichTru.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
@@ -92,7 +92,7 @@ public class QLDTTT extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
 
-        lbChonLoaiDauTuTichTru.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/kính lúp.png"))); // NOI18N
+        lbChonLoaiDauTuTichTru.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/kính lúp.png"))); // NOI18N
         lbChonLoaiDauTuTichTru.setText("Chọn loại đầu tư & tích trữ");
 
         cbChonLoaiDauTuTichTru.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tất cả", "ST_VCBF-FIF", "ST_GOLD", "ST_USD", "IN_BID", "IN_FPT", "IN_HVN", "IN_SSI-SCA", "IN_BTC", "IN_ETH", "IN_BUSINESS", "Short_BTC", "Short_Gold", "Short_ETH", "Short_BID", "Short_FPT" }));
@@ -251,7 +251,7 @@ public class QLDTTT extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Xóa", jPanel5);
 
-        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/black_home32.png"))); // NOI18N
+        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/black_home32.png"))); // NOI18N
         menuTrangChu.setText("Trang chủ");
         jMenuBar1.add(menuTrangChu);
 

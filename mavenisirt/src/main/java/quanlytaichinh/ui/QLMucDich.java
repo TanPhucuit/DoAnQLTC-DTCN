@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.giaodien_maven;
+package quanlytaichinh.ui;
 
 /**
  *
@@ -83,7 +83,7 @@ public class QLMucDich extends javax.swing.JFrame {
         lbQuanLyMucDich.setText("Quản lý mục đích");
 
         lbUserName.setForeground(new java.awt.Color(255, 255, 255));
-        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/icons8-user-32.png"))); // NOI18N
+        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/icons8-user-32.png"))); // NOI18N
         lbUserName.setText("User_name");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -226,7 +226,7 @@ public class QLMucDich extends javax.swing.JFrame {
         ));
         jScrollPane2.setViewportView(jTable2);
 
-        lbTimTenMucDichXoa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/kính lúp.png"))); // NOI18N
+        lbTimTenMucDichXoa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/kính lúp.png"))); // NOI18N
         lbTimTenMucDichXoa.setText("Tìm tên mục đích");
 
         txtTimTenMucDichXoa.setToolTipText("Nhập tên tìm kiếm");
@@ -284,7 +284,7 @@ public class QLMucDich extends javax.swing.JFrame {
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
 
-        lbTimTenMucDichSua.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/kính lúp.png"))); // NOI18N
+        lbTimTenMucDichSua.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/kính lúp.png"))); // NOI18N
         lbTimTenMucDichSua.setText("Tìm tên mục đích");
 
         txtTimTenMucDichSua.setToolTipText("Nhập tên tìm kiếm");
@@ -429,7 +429,7 @@ public class QLMucDich extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Sửa mục đích", jPanel5);
 
-        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/black_home32.png"))); // NOI18N
+        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/black_home32.png"))); // NOI18N
         menuTrangChu.setText("Trang chủ");
         jMenuBar1.add(menuTrangChu);
 

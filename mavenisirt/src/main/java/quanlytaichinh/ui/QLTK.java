@@ -2,8 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.giaodien_maven;
-
+package quanlytaichinh.ui;
 /**
  *
  * @author Admin
@@ -65,12 +64,12 @@ public class QLTK extends javax.swing.JFrame {
 
         lbQuanLyTietKiem.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         lbQuanLyTietKiem.setForeground(new java.awt.Color(255, 255, 255));
-        lbQuanLyTietKiem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/savemoney.png"))); // NOI18N
+        lbQuanLyTietKiem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/savemoney.png"))); // NOI18N
         lbQuanLyTietKiem.setText("Quản lý tiết kiệm");
 
         lbUserName.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lbUserName.setForeground(new java.awt.Color(255, 255, 255));
-        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/icons8-user-32.png"))); // NOI18N
+        lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/icons8-user-32.png"))); // NOI18N
         lbUserName.setText("User_name");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -320,7 +319,7 @@ public class QLTK extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Sửa tên khoản tiết kiệm", jPanel4);
 
-        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/black_home32.png"))); // NOI18N
+        menuTrangChu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/black_home32.png"))); // NOI18N
         menuTrangChu.setText("Trang chủ");
         jMenuBar1.add(menuTrangChu);
 

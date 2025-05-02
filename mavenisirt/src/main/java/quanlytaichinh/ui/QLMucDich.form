@@ -7,7 +7,7 @@
         <Menu class="javax.swing.JMenu" name="menuTrangChu">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/image/black_home32.png"/>
+              <Image iconType="3" name="/quanlytaichinh/ui/image/black_home32.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value="Trang ch&#x1ee7;"/>
           </Properties>
@@ -123,7 +123,7 @@
               <Color blue="ff" green="ff" red="ff" type="rgb"/>
             </Property>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/image/icons8-user-32.png"/>
+              <Image iconType="3" name="/quanlytaichinh/ui/image/icons8-user-32.png"/>
             </Property>
             <Property name="text" type="java.lang.String" value="User_name"/>
           </Properties>
@@ -450,7 +450,7 @@
             <Component class="javax.swing.JLabel" name="lbTimTenMucDichXoa">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
+                  <Image iconType="3" name="/quanlytaichinh/ui/image/k&#xed;nh l&#xfa;p.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="T&#xec;m t&#xea;n m&#x1ee5;c &#x111;&#xed;ch"/>
               </Properties>
@@ -561,7 +561,7 @@
             <Component class="javax.swing.JLabel" name="lbTimTenMucDichSua">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/image/k&#xed;nh l&#xfa;p.png"/>
+                  <Image iconType="3" name="/quanlytaichinh/ui/image/k&#xed;nh l&#xfa;p.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="T&#xec;m t&#xea;n m&#x1ee5;c &#x111;&#xed;ch"/>
               </Properties>
