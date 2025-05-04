@@ -124,9 +124,9 @@ public class UserServicett implements UserService {
          }
     }
 
-    @Override
     public List<Sysuser> GetAllUser() {
         System.out.println("Lấy danh sách tất cả người dùng");
+
         try {
             return dao.findallUser();
         } catch (Exception e) {

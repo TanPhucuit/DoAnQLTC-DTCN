@@ -11,16 +11,12 @@ import java.sql.SQLException;
 
 public class ketnoidb {
 
-   private static final String DB_URL = "jdbc:mysql://localhost:3306/QLY?serverTimezone=Asia/Ho_Chi_Minh&useSSL=false&allowPublicKeyRetrieval=true";
-    private static final String USER_kn = "quanlyapp"; 
+   private static final String DB_URL = "jdbc:mysql://localhost:3306/qltc0501?serverTimezone=Asia/Ho_Chi_Minh&useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String USER_kn = "root"; 
 
-private static final String DB_PASSWORD = System.getProperty("matkhau");
+private static final String DB_PASSWORD = "";
 
 public static Connection getConnection() throws SQLException {
-    if (DB_PASSWORD == null || DB_PASSWORD.isEmpty()) {
-        System.err.println("Lỗi connection 'matkhau' chưa được thiết lập!");
-        throw new SQLException("Lỗi cấu hình mật khẩu cơ sở dữ liệu).");
-    }
     return DriverManager.getConnection(DB_URL, USER_kn, DB_PASSWORD);
 }
     public static void closeConnection(Connection c) {
