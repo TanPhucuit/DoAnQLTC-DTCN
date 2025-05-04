@@ -57,7 +57,7 @@ public class Quan_li extends javax.swing.JFrame {
 
         jPanel12.setBackground(new java.awt.Color(255, 255, 255));
 
-        jPanel7.setBackground(new java.awt.Color(0, 102, 51));
+        jPanel7.setBackground(new java.awt.Color(0, 153, 153));
         jPanel7.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         lbQuanLy.setFont(new java.awt.Font("Verdana", 1, 24)); // NOI18N

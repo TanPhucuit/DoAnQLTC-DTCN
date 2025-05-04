@@ -60,7 +60,7 @@ public class QLTK extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
 
-        jPanel1.setBackground(new java.awt.Color(0, 102, 51));
+        jPanel1.setBackground(new java.awt.Color(0, 153, 153));
 
         lbQuanLyTietKiem.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         lbQuanLyTietKiem.setForeground(new java.awt.Color(255, 255, 255));

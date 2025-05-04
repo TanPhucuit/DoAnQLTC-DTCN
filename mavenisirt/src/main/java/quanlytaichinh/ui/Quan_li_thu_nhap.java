@@ -62,7 +62,7 @@ public class Quan_li_thu_nhap extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-        jPanel3.setBackground(new java.awt.Color(0, 102, 51));
+        jPanel3.setBackground(new java.awt.Color(0, 153, 153));
 
         lbQuanLyThuNhap.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         lbQuanLyThuNhap.setForeground(new java.awt.Color(255, 255, 255));

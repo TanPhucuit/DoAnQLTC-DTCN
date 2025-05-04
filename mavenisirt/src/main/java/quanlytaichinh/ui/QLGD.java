@@ -75,7 +75,7 @@ public class QLGD extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(0, 102, 51));
+        jPanel1.setBackground(new java.awt.Color(0, 153, 153));
 
         lbUserName.setForeground(new java.awt.Color(255, 255, 255));
         lbUserName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/quanlytaichinh/ui/image/icons8-user-32.png"))); // NOI18N
