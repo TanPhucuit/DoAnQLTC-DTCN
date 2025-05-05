@@ -10,5 +10,7 @@ import quanlytaichinh.model.AccountBalance;
  */
 public interface AccountBalanceDao {
     AccountBalance FindLatest(int userid);
-    AccountBalance findByUserIdAndMonth(int userId, int month);
+    AccountBalance findByUserIdAndMonth(int userId, int month,int year);
+    double getTotalSpendingForMonth(int userId, int month, int year);
+    double getCurrentAssets(int userId, int month, int year);
 }

@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
 package quanlytaichinh.dao;
+import quanlytaichinh.model.*;
 import java.util.List;
 import quanlytaichinh.model.InCome;
 /**
@@ -11,7 +12,9 @@ import quanlytaichinh.model.InCome;
  */
 public interface IncomeDao {
     boolean AddIncome(InCome ic);
-    // tổng tài sản hiện có trên tháng
-    double TotalIncomePerMonth(int userid,int month);
-    
+   
+    InCome getIncomeById(int incomeId);
+    List<InCome> getIncomesByMonthAndYear(int userId, int month);
+    double GetTotalFirstIncome (int userid, int month);
+
 }

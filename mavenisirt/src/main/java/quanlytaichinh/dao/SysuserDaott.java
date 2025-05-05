@@ -22,12 +22,12 @@ public class SysuserDaott implements SysuserDao {
         try (Connection ketnoi = ketnoidb.getConnection();
                 PreparedStatement save = ketnoi.prepareStatement(sql)){
                 save.setString(1,username);
-                try(ResultSet rs = save.executeQuery()){
-                    if(rs.next()){
+                try(ResultSet result = save.executeQuery()){
+                    if(result.next()){
                         user = new Sysuser();
-                        user.setUserid(rs.getInt("userID"));
-                        user.setUsername(rs.getString("user_name"));
-                        user.setPassword(rs.getString("password"));
+                        user.setUserid(result.getInt("userID"));
+                        user.setUsername(result.getString("user_name"));
+                        user.setPassword(result.getString("password"));
                     }
                 }   
           }
@@ -63,13 +63,13 @@ public class SysuserDaott implements SysuserDao {
         String sql = "SELECT UserID, user_name, password FROM SYS_USER"; 
 
         try (Connection conn = ketnoidb.getConnection(); 
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) { 
-            while (rs.next()) { 
+             PreparedStatement save = conn.prepareStatement(sql);
+             ResultSet result = save.executeQuery()) { 
+            while (result.next()) { 
                 Sysuser user = new Sysuser(); 
-                user.setUserid(rs.getInt("UserID"));
-                user.setUsername(rs.getString("user_name"));
-                user.setPassword(rs.getString("password"));
+                user.setUserid(result.getInt("UserID"));
+                user.setUsername(result.getString("user_name"));
+                user.setPassword(result.getString("password"));
                 userList.add(user);
             }
         } catch (SQLException e) {
@@ -84,13 +84,13 @@ public class SysuserDaott implements SysuserDao {
         boolean status = false;
         String sql = "UPDATE SYS_USER SET user_name = ?, password = ? WHERE UserID = ?";
         try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement save = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, user.getUsername()); 
-            pstmt.setString(2, user.getPassword()); 
-            pstmt.setInt(3, user.getUserid()); 
+            save.setString(1, user.getUsername()); 
+            save.setString(2, user.getPassword()); 
+            save.setInt(3, user.getUserid()); 
 
-            int rowsAffected = pstmt.executeUpdate();
+            int rowsAffected = save.executeUpdate();
 
             if (rowsAffected > 0) { 
                 status = true;
@@ -108,9 +108,9 @@ public class SysuserDaott implements SysuserDao {
         String sql = "DELETE FROM SYS_USER WHERE UserID = ?";
 
         try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userid);
-            int rowsAffected = pstmt.executeUpdate();
+             PreparedStatement save = conn.prepareStatement(sql)) {
+            save.setInt(1, userid);
+            int rowsAffected = save.executeUpdate();
 
             if (rowsAffected > 0) {
                 status = true;
@@ -128,16 +128,16 @@ public class SysuserDaott implements SysuserDao {
         String sql = "SELECT UserID, user_name, password FROM SYS_USER WHERE UserID = ?"; 
 
         try (Connection conn =ketnoidb.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement save = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, userId);
+            save.setInt(1, userId);
 
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
+            try (ResultSet result = save.executeQuery()) {
+                if (result.next()) {
                     user = new Sysuser();
-                    user.setUserid(rs.getInt("UserID"));
-                    user.setUsername(rs.getString("user_name"));
-                    user.setPassword(rs.getString("password"));
+                    user.setUserid(result.getInt("UserID"));
+                    user.setUsername(result.getString("user_name"));
+                    user.setPassword(result.getString("password"));
                 }
             }
         } catch (SQLException e) {

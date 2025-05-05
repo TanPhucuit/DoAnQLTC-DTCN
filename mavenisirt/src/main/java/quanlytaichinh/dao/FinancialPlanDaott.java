@@ -14,25 +14,24 @@ public class FinancialPlanDaott implements FinancialPlanDao{
      @Override
     public FinancialPlan getFinancialPlan(int userId) {
         FinancialPlan plan = null;
-        String sql = "SELECT * FROM FINANCIAL_PLAN WHERE UserID = ? LIMIT 1";
+        String sql = "SELECT * FROM FINANCIAL_PLAN WHERE UserID = ?";
         try (Connection conn = ketnoidb.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
+            try (ResultSet result= pstmt.executeQuery()) {
+                if (result.next()) {
                     plan = new FinancialPlan();
-                    plan.setUserId(rs.getInt("UserID"));
-                    plan.setInvestorType(rs.getString("Investor_type"));
-                    plan.setCurProperty(rs.getDouble("cur_property"));
-                    plan.setCurInvestProperty(rs.getDouble("cur_invest_property"));
-                    plan.setCurEsProfit(rs.getDouble("cur_es_profit"));
-                    plan.setCurCumulativePnl(rs.getDouble("cur_cumulative_pnl"));
-                    plan.setWarningLossRate(rs.getDouble("warning_loss_rate"));
+                    plan.setUserId(result.getInt("UserID"));
+                    plan.setInvestorType(result.getString("Investor_type"));
+                    plan.setCurProperty(result.getDouble("cur_property"));
+                    plan.setCurInvestProperty(result.getDouble("cur_invest_property"));
+                    plan.setCurEsProfit(result.getDouble("cur_es_profit"));
+                    plan.setCurCumulativePnl(result.getDouble("cur_cumulative_pnl"));
+                    plan.setWarningLossRate(result.getDouble("warning_loss_rate"));
                 }
             }
         } catch (SQLException e) {
             System.err.println("Lỗi khi lấy Financial Plan: " + e.getMessage());
-            e.printStackTrace();
         }
         return plan;
     }

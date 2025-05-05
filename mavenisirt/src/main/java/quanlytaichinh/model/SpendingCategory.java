@@ -13,14 +13,26 @@ public class SpendingCategory {
     private String typeDescription;
     private double totalAmount;
     private double percentageRate;
+    private String source;
     public SpendingCategory(){};
 
-    public SpendingCategory(String typeId, String typeDescription, double totalAmount, double percentageRate) {
+    public SpendingCategory(String typeId, String typeDescription, double totalAmount, double percentageRate, String source) {
         this.typeId = typeId;
         this.typeDescription = typeDescription;
         this.totalAmount = totalAmount;
         this.percentageRate = percentageRate;
+        this.source = source;
     }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+   
 
     public String getTypeId() {
         return typeId;

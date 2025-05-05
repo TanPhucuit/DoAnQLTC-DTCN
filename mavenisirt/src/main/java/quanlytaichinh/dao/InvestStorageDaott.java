@@ -19,9 +19,9 @@ public class InvestStorageDaott implements InvestStorageDao {
         List<InvestStorage> investments = new ArrayList<>();
         String sql = "SELECT * FROM INVEST_STORAGE WHERE UserID = ?";
         try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            try (ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement save = conn.prepareStatement(sql)) {
+            save.setInt(1, userId);
+            try (ResultSet rs = save.executeQuery()) {
                 while (rs.next()) {
                     InvestStorage storage = new InvestStorage();
                     storage.setInStId(rs.getString("InStID"));
@@ -44,12 +44,12 @@ public class InvestStorageDaott implements InvestStorageDao {
     public double getTotalEstimatedProfit(int userId) {
         double totalProfit = 0.0;
         String sql = "SELECT SUM(es_profit) AS total_es_profit FROM INVEST_STORAGE WHERE UserID = ?";
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    totalProfit = rs.getDouble("total_es_profit");
+        try (Connection ketnoi= ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
+            save.setInt(1, userId);
+            try (ResultSet result = save.executeQuery()) {
+                if (result.next()) {
+                    totalProfit = result.getDouble("total_es_profit");
                    
                 }
             }

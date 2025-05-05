@@ -3,17 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package quanlytaichinh.service;
-import quanlytaichinh.model.Transaction;
-import quanlytaichinh.model.SpendingCategory;
-import quanlytaichinh.dao.TransactionDao;
-import quanlytaichinh.dao.TransactionDaott;
-import quanlytaichinh.dao.AccountBalanceDao;     
-import quanlytaichinh.dao.AccountBalanceDaott;    
-import quanlytaichinh.dao.IncomeDao;             
-import quanlytaichinh.dao.IncomeDaott;  
-import quanlytaichinh.model.AccountBalance;
-import quanlytaichinh.dao.LoanDaott;
-import quanlytaichinh.dao.LoanDao;
+import quanlytaichinh.model.*;
+
 import java.sql.*;
 import java.sql.SQLException;
 import java.util.List;
@@ -21,14 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 import java.util.Collections;
-import quanlytaichinh.dao.FinancialPlanDao; 
-import quanlytaichinh.dao.FinancialPlanDaott; 
-import quanlytaichinh.dao.InvestStorageDao; 
-import quanlytaichinh.dao.InvestStorageDaott;
-import quanlytaichinh.model.SpendingByIncomeSource;
-import quanlytaichinh.model.Loan;
-import quanlytaichinh.model.FinancialPlan;
-import quanlytaichinh.model.InvestStorage;
+import quanlytaichinh.dao.*;
+import quanlytaichinh.model.*;
 /**
  *
  * @author 23520
@@ -40,104 +25,96 @@ public class FinancialServicett implements FinancialService {
     private LoanDao loanDao;
      private FinancialPlanDao financialPlanDao;
     private InvestStorageDao investStorageDao;
-        public FinancialServicett() {
-        this.acc = new AccountBalanceDaott();
-        this.ic = new IncomeDaott();
-        this.loanDao = new LoanDaott();
-        this.transactionDao = new TransactionDaott();
-        this.financialPlanDao = new FinancialPlanDaott();
-        this.investStorageDao = new InvestStorageDaott();
-        
-    }
+    private StatisticReportDao statisticReportDao;
+    private TypeDao typeDao; 
+    
   
-    @Override
-    public double GetTotalInCome(int userid,int month)
+    public FinancialServicett(AccountBalanceDao acc, IncomeDao ic, TransactionDao transactionDao, LoanDao loanDao,
+			FinancialPlanDao financialPlanDao, InvestStorageDao investStorageDao, StatisticReportDao statisticReportDao,
+			TypeDao typeDao) {
+		this.acc = acc;
+		this.ic = ic;
+		this.transactionDao = transactionDao;
+		this.loanDao = loanDao;
+		this.financialPlanDao = financialPlanDao;
+		this.investStorageDao = investStorageDao;
+		this.statisticReportDao = statisticReportDao;
+		this.typeDao = typeDao;
+	}
+	@Override
+    public double GetTotalInCome(int userid,int month,int year)
     {
         Double result = 0.0;
         System.out.println("Tổng thu nhập của người dùng với id" +userid);
-        result = ic.TotalIncomePerMonth(userid, month);
-        return result;
+        AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+        if(ac!= null)
+            ac.getTotal_remain_income();
+            return 0.0;
     }
    @Override
-         public double GetTotalSpend(int userid,int month) 
+         public double GetTotalSpend(int userid,int month,int year) 
          {
              Double result = 0.0;
              System.out.println("Tổng chi tiêu của người dùng ");
-                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-                 if(ac==null){
-                     System.out.println(" không tim thay user");
-                     return result;
-                 }
-                 return ac.getTotal_spend();
-                     
+                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+                 if(ac!= null)
+            ac.getTotal_spend();
+            return 0.0;
              
          }
       @Override
-      public double GetTotalSaving(int userid,int month)
+      public double GetTotalSaving(int userid,int month,int year)
       {
              Double result = 0.0;
                 System.out.println("Tổng tiết kiệm của người dùng ");
-                AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-                 if(ac==null){
-                     System.out.println(" không tim thay user");
-                     return result;
-                 }
-                 return ac.getTotal_remain_save();
-                   
+                AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+                if(ac!= null)
+            ac.getTotal_remain_save();
+            return 0.0;
             }
       
    @Override
-         public double GetTotalInvest_Property(int userid,int month) 
+         public double GetTotalInvest_Property(int userid,int month,int year) 
          {
              Double result = 0.0;
              System.out.println("Tổng giá trị tài sản đầu tư và tích trữ của người dùng ");
-                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-                 if(ac==null){
-                     System.out.println(" không tim thay user");
-                     return result;
-                 }
-                 return ac.getTotal_invest_property();
+                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+                 if(ac!= null)
+            ac.getTotal_invest_property();
+            return 0.0;
                      
              
          }
      @Override
-         public double GetTotalLoanRemain(int userid,int month) 
+         public double GetTotalLoanRemain(int userid,int month,int year) 
          {
              Double result = 0.0;
              System.out.println("Tổng dư nợ của người dùng ");
             
-                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-                 if(ac==null){
-                     System.out.println(" không tim thay user");
-                     return result;
-                 }
-                 return ac.getTotal_loan_remain();
-                     
+                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+                 if(ac!= null)
+            ac.getTotal_loan_remain();
+            return 0.0;
           
          }
         @Override
-         public double GetTotalInvest(int userid,int month) 
+         public double GetTotalInvest(int userid,int month,int year) 
          {
              Double result = 0.0;
              System.out.println("Tổng vốn đầu tư của người dùng ");
    
-                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-                 if(ac==null){
-                     System.out.println(" không tim thay user");
-                     return result;
-                 }
-                 return ac.getTotal_invest();
-         } 
+                 AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+               if(ac!= null)
+            ac.getTotal_invest();
+            return 0.0;
+         }
      @Override
-     public double NetAsset(int userid, int month){
+     public double NetAsset(int userid, int month,int year){
          Double result = 0.0;
          System.out.println("Tổng tài sản sau khi khấu trừ dư nợ");
-             AccountBalance ac = acc.findByUserIdAndMonth(userid, month);
-             if(ac==null)
-             {
-                 System.out.println(" không tìm thấy user ");
-                 return result;
-             }
+             AccountBalance ac = acc.findByUserIdAndMonth(userid, month,year);
+            if(ac== null)
+            return 0.0;
              result = ac.getBalance()- ac.getTotal_loan_remain();
              return result;
              
@@ -145,156 +122,178 @@ public class FinancialServicett implements FinancialService {
          
      
 @Override
-public boolean addTransaction(Transaction transaction) {
-    System.out.println("Thêm giao dịch mới...");
-    try {
-        boolean result = transactionDao.addTransaction(transaction);
-        return result;
-    } catch (Exception e) {
-        System.err.println("Lỗi Service khi thêm giao dịch: " + e.getMessage());
-        e.printStackTrace();
-        return false;
-    }
-}
-@Override
-public List<Transaction> GetInvestmentTransaction(int userId, int month) {
-    System.out.println("lấy giao dịch đầu tư cho user " + userId + " tháng " + month);
-    try {
-        return transactionDao.GetInvestmentTransaction(userId, month);
-    } catch (Exception e) {
-        System.err.println("Lỗi Service khi lấy giao dịch đầu tư: " + e.getMessage());
-        e.printStackTrace();
-        return new ArrayList<>();
-    }
-}
-
-@Override
-public List<Transaction> GetSpendingFromIncome(int userId, int month) {
-    System.out.println("Lấy giao dịch chi từ thu nhập cho user " + userId + " tháng " + month);
-    try {
-        return transactionDao.GetSpendingFromIncome(userId, month);
-    } catch (Exception e) {
-        System.err.println("Lỗi Service khi lấy giao dịch chi từ thu nhập: " + e.getMessage());
-        e.printStackTrace();
-        return new ArrayList<>(); 
-    }
-}
-
-@Override
-public List<SpendingCategory> GetSpendingTotalType(int userId, int month) {
-    System.out.println("Service: Lấy tổng chi theo loại cho user " + userId + " tháng " + month);
-     try {
-        return transactionDao.GetSpendingTotalType(userId, month);
-    } catch (Exception e) {
-        System.err.println("Lỗi Service khi lấy tổng chi theo loại: " + e.getMessage());
-        e.printStackTrace();
-        return new ArrayList<>();
-    }
-}
-     @Override
-     public List<Loan> getLoanDetails(int userId) {
-        System.out.println("Lấy chi tiết các khoản vay cho user " + userId);
+    public List<Loan> getLoanDetails(int userId) {
+        System.out.println("Service: Lấy chi tiết các khoản vay cho user " + userId);
         try {
             return loanDao.GetIdUserLoan(userId); 
         } catch (Exception e) {
-            System.err.println("Lỗi khi lấy chi tiết khoản vay: " + e.getMessage());
+            System.err.println("Lỗi Service khi lấy chi tiết khoản vay: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public InvestmentSum getInvestmentSum(int userId, int month, int year) {
+        System.out.println("Service: Lấy thống kê đầu tư cho user " + userId + " tháng " + month + " năm " + year);
+        InvestmentSum sum = new InvestmentSum(); 
+
+        try {
+           
+            List<Transaction> buyTransactions = transactionDao.getBuyInvestmentTransactions(userId, month, year);
+            List<Transaction> sellTransactions = transactionDao.getSellInvestmentTransactions(userId, month, year);
+            FinancialPlan plan = financialPlanDao.getFinancialPlan(userId);
+            double cumulativePnl = 0.0;
+            double estimatedProfit = 0.0;
+            if (plan != null) {
+                cumulativePnl = plan.getCurCumulativePnl(); 
+                estimatedProfit = plan.getCurEsProfit();    
+            }
+
+         
+            sum.setBuyTransactions(buyTransactions);
+            sum.setSellTransactions(sellTransactions);
+            sum.setCumulativeNetProfit(cumulativePnl);
+            sum.setTotalEstimatedProfit(estimatedProfit);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi Service khi lấy thống kê đầu tư: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return sum;
+    }
+
+    
+    @Override
+    public List<SpendingByIncomeSource> getSpendingTransactionsGroupedByIncome(int userId, int month, int year) {
+        System.out.println("Service: Lấy GD chi tiêu theo nguồn thu nhập cho user " + userId + " tháng " + month + " năm " + year);
+        try {     
+            return transactionDao.getSpendingTransactionsGroupedByIncome(userId, month, year);
+        } catch (Exception e) {
+            System.err.println(" Lỗi Service khi lấy GD chi tiêu theo nguồn thu nhập: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
     @Override
-     public List<Transaction> getBuyInvestmentTransactions(int userId, int month) {
-         System.out.println("Lấy giao dịch MUA đầu tư cho user " + userId + " tháng " + month);
-         try {
-             
-             return transactionDao.getBuyInvestmentTransactions(userId, month);
+    public List<SpendingCategory> GetSpendingTotalType(int userId, int month, int year) {
+        System.out.println("Service: Lấy tổng chi theo loại cho user " + userId + " tháng " + month + " năm " + year);
+         try {            
+             return transactionDao.GetSpendingTotalType(userId, month, year);
          } catch (Exception e) {
-             System.err.println("Lỗi khi lấy giao dịch MUA đầu tư: " + e.getMessage());
+             System.err.println("Lỗi Service khi lấy tổng chi theo loại: " + e.getMessage());
              e.printStackTrace();
              return new ArrayList<>();
          }
-     }
-
-     @Override
-     public List<Transaction> getSellInvestmentTransactions(int userId, int month) {
-         System.out.println("Lấy giao dịch BÁN đầu tư cho user " + userId + " tháng " + month);
-         try {
-         
-             return transactionDao.getSellInvestmentTransactions(userId, month);
-         } catch (Exception e) {
-             System.err.println("Lỗi khi lấy giao dịch BÁN đầu tư: " + e.getMessage());
-             e.printStackTrace();
-             return new ArrayList<>();
-         }
-     }
-     @Override
-    public FinancialPlan getFinancialPlanData(int userId) {
-         System.out.println("Lấy dữ liệu Financial Plan cho user " + userId);
-         FinancialPlan plan = null;
-         try {
-            
-            plan = financialPlanDao.getFinancialPlan(userId);
-         } catch (Exception e) {
-             System.err.println("Lỗi khi lấy Financial Plan data: " + e.getMessage());
-             e.printStackTrace();
-         }
-         return plan; 
-    }
+    }    
     @Override
-    public double getCumulativePnL(int userId) {
-        FinancialPlan plan = getFinancialPlanData(userId);
-        return (plan != null) ? plan.getCurCumulativePnl() : 0.0; 
-    }
-
-  
-    public List<InvestStorage> getCurrentInvestmentDetails(int userId) {
-        System.out.println("lấy chi tiết đầu tư đang nắm giữ cho user " + userId);
-         try {
-            return investStorageDao.getCurrentInvestments(userId);
-         } catch (Exception e) {
-             System.err.println("Lỗi khi lấy chi tiết đầu tư đang nắm giữ: " + e.getMessage());
-             e.printStackTrace();
-             return new ArrayList<>();
-         }
-    }
-    @Override
-    public double getTotalEstimatedInvestmentProfit(int userId) {
-        System.out.println("Lấy tổng lợi nhuận ước tính đầu tư cho user " + userId);
+    public boolean addTransaction(Transaction transaction) {       
+        System.out.println("Thêm giao dịch mới...");
         try {
-            return investStorageDao.getTotalEstimatedProfit(userId);
+            return transactionDao.addTransaction(transaction);
         } catch (Exception e) {
-            System.err.println("Lỗi khi lấy tổng lợi nhuận ước tính đầu tư: " + e.getMessage());
-             e.printStackTrace();
-            return 0.0;
+            System.err.println("Lỗi Service khi thêm giao dịch: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
+    @Override
+    public ReportData getReportData(int userId, int month, int year) {
+        System.out.println("Service: Lấy dữ liệu báo cáo user " + userId + " T" + month + "/" + year);
+        ReportData reportData = new ReportData();
+        try {    	           
+            StatisticReport monthlyStats = statisticReportDao.getMonthlyReport(userId, month, year);
+            if (monthlyStats != null) {
+                reportData.setAverageDailySpending(monthlyStats.getAverage_per_day());
+                reportData.setAverageWeeklySpending(monthlyStats.getAverage_per_week());
+                reportData.setMonthlyCumulativePnl(monthlyStats.getCumulative_pnl());
+            }
+            FinancialPlan plan = financialPlanDao.getFinancialPlan(userId);
+            if (plan != null) {
+                reportData.setOverallCumulativePnl(plan.getCurCumulativePnl());
+            }            
+            long transactionCount = transactionDao.getTransactionCount(userId, month, year);
+            reportData.setTotalTransactionCount(transactionCount);
+            List<Type> types = typeDao.getTypesByUserId(userId);
+            reportData.setSpendingTypeDetails(types); 
+             double currentMonthSpend = this.GetTotalSpend(userId, month, year);
+             reportData.setCurrentMonthSpending(currentMonthSpend);
+        } catch (Exception e) {
+            System.err.println("Lỗi Service khi lấy dữ liệu báo cáo: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return reportData;
+    }
+    @Override
+    
+    public SpendingStatus GetSpendingStatus(int userid,int month,int year)
+    {
+    	
+    	double totalincome = 0.0;
+    	double totalspend = 0.0;
+    	totalincome = ic.GetTotalFirstIncome(userid, month);
+    	AccountBalance ac = acc.findByUserIdAndMonth(userid, month, year);
+    	if(ac == null)
+    		totalspend = ac.getTotal_spend();
+    	else return null;
+    	return new SpendingStatus(totalincome,totalspend);
+    }
+    @Override
+    public InvestStatus getCurrentInvestmentStatus(int userId) {
+        System.out.println("Service: Lấy trạng thái đầu tư hiện tại cho user " + userId);
+        InvestStatus statusData = new InvestStatus();
 
-       @Override
-     public List<SpendingByIncomeSource> getSpendingTransactionsGroupedByIncome(int userId, int month) {
-         System.out.println("Service: Lấy GD chi tiêu theo nguồn thu nhập cho user " + userId + " tháng " + month);
-         try {
-             return transactionDao.getSpendingTransactionsGroupedByIncome(userId, month);
-         } catch (Exception e) {
-             System.err.println(" Lỗi khi lấy GD chi tiêu theo nguồn thu nhập: " + e.getMessage());
-             e.printStackTrace();
-             return new ArrayList<>();
-         }
-     }
-     @Override
-     public List<SpendingCategory> getSpendingStatisticsWithRateFromDB(int userId, int month) {
-         System.out.println(" thống kê chi tiêu theo loại (dùng rate từ DB) cho user " + userId + " tháng " + month);
-          try {
-   
-              List<SpendingCategory> categories = transactionDao.GetSpendingTotalType(userId, month);
+        try {         
+            FinancialPlan plan = financialPlanDao.getFinancialPlan(userId);
+            double currentPortfolioValue = 0.0;
+            double totalEstimatedPnl = 0.0;
+
+            if (plan != null) {
+                statusData.setRealizedPnl(plan.getCurCumulativePnl()); 
+                statusData.setTotalEstimatedPnl(plan.getCurEsProfit());   
+                statusData.setCurrentPortfolioValue(plan.getCurInvestProperty()); 
+                statusData.setUserWarningLossRate(plan.getWarningLossRate());   
+
+                currentPortfolioValue = plan.getCurInvestProperty();
+                totalEstimatedPnl = plan.getCurEsProfit();
+            } else {
+                 System.out.println("Service: Không tìm thấy Financial Plan cho user " + userId);
+            }
+
             
-              return categories;
-          } catch (Exception e) {
-              System.err.println("Lỗi Service khi lấy tổng chi theo loại: " + e.getMessage());
-              e.printStackTrace();
-              return new ArrayList<>();
-          }
+            boolean isSafe = true;
+            if (totalEstimatedPnl < 0 && currentPortfolioValue > 0) {
+               
+                double lossPercentage = (Math.abs(totalEstimatedPnl) / currentPortfolioValue) * 100.0;
+                if (lossPercentage > 30.0) { 
+                    isSafe = false; 
+                }
+            }
+            statusData.setInvestmentSafe(isSafe);
 
-     }
+           
+            List<InvestStorage> currentInvestments = investStorageDao.getCurrentInvestments(userId);
+            List<InvestStatusDetail> details = new ArrayList<>();
+            if (currentInvestments != null) {
+                for (InvestStorage storage : currentInvestments) {
+                    InvestStatusDetail detail = new InvestStatusDetail(
+                        storage.getInStId(),        
+                        storage.getNumUnit(),       
+                        storage.getEsProfit()       
+                    );
+                    details.add(detail);
+                }
+            }
+            statusData.setInvestmentDetails(details);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi Service khi lấy trạng thái đầu tư: " + e.getMessage());
+            e.printStackTrace();
+          
+        }
+
+        return statusData;
+    }
 }
 
 

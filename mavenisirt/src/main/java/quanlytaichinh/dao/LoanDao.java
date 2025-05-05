@@ -11,4 +11,5 @@ import quanlytaichinh.model.Loan;
  */
 public interface LoanDao {
     List<Loan> GetIdUserLoan(int userid);
+    
 }
