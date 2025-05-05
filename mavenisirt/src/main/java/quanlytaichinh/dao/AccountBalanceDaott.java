@@ -25,8 +25,8 @@ public class AccountBalanceDaott implements AccountBalanceDao {
         AccountBalance accountBalance = null;
         String sql = "SELECT * FROM ACCOUNT_BALANCE WHERE UserID = ? ORDER BY up_date DESC LIMIT 1";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             try (ResultSet result = save.executeQuery()) {
@@ -58,8 +58,8 @@ public class AccountBalanceDaott implements AccountBalanceDao {
 public AccountBalance findByUserIdAndMonth(int userId, int month,int year) {
     AccountBalance accountBalance = null;
     String sql = "SELECT * FROM ACCOUNT_BALANCE WHERE UserID = ? AND ab_month = ? AND YEAR(up_date) = ?";
-    try (Connection conn = ketnoidb.getConnection();
-         PreparedStatement save = conn.prepareStatement(sql)) {
+    try (Connection ketnoi = ketnoidb.getConnection();
+         PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
         save.setInt(1, userId);
         save.setString(2, String.valueOf(month));
@@ -95,8 +95,8 @@ public AccountBalance findByUserIdAndMonth(int userId, int month,int year) {
       
         String sql = "SELECT total_remain_income, total_invest_property, total_remain_save FROM ACCOUNT_BALANCE WHERE UserID = ? AND ab_month = ? AND YEAR(up_date) = ?";
       
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             save.setString(2, String.valueOf(month));
@@ -121,8 +121,8 @@ public AccountBalance findByUserIdAndMonth(int userId, int month,int year) {
         String sql = "SELECT total_spend FROM ACCOUNT_BALANCE WHERE UserID = ? AND ab_month = ? AND YEAR(up_date) = ?";
                      
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             save.setString(2, String.valueOf(month));

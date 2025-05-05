@@ -18,8 +18,8 @@ public class InvestStorageDaott implements InvestStorageDao {
     public List<InvestStorage> getCurrentInvestments(int userId) {
         List<InvestStorage> investments = new ArrayList<>();
         String sql = "SELECT * FROM INVEST_STORAGE WHERE UserID = ?";
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userId);
             try (ResultSet rs = save.executeQuery()) {
                 while (rs.next()) {

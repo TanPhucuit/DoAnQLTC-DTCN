@@ -62,8 +62,8 @@ public class SysuserDaott implements SysuserDao {
         List<Sysuser> userList = new ArrayList<>(); 
         String sql = "SELECT UserID, user_name, password FROM SYS_USER"; 
 
-        try (Connection conn = ketnoidb.getConnection(); 
-             PreparedStatement save = conn.prepareStatement(sql);
+        try (Connection ketnoi = ketnoidb.getConnection(); 
+             PreparedStatement save = ketnoi.prepareStatement(sql);
              ResultSet result = save.executeQuery()) { 
             while (result.next()) { 
                 Sysuser user = new Sysuser(); 
@@ -83,8 +83,8 @@ public class SysuserDaott implements SysuserDao {
     public boolean UpdateUser(Sysuser user) { 
         boolean status = false;
         String sql = "UPDATE SYS_USER SET user_name = ?, password = ? WHERE UserID = ?";
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setString(1, user.getUsername()); 
             save.setString(2, user.getPassword()); 
@@ -107,8 +107,8 @@ public class SysuserDaott implements SysuserDao {
         boolean status = false;
         String sql = "DELETE FROM SYS_USER WHERE UserID = ?";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userid);
             int rowsAffected = save.executeUpdate();
 
@@ -127,8 +127,8 @@ public class SysuserDaott implements SysuserDao {
         Sysuser user = null;
         String sql = "SELECT UserID, user_name, password FROM SYS_USER WHERE UserID = ?"; 
 
-        try (Connection conn =ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi =ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
 

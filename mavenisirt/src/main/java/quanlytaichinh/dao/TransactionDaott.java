@@ -19,8 +19,8 @@ public class TransactionDaott implements TransactionDao {
     @Override
     public boolean addTransaction(Transaction transaction) {
         String sql ="INSERT INTO TRANSACTION (TypeID, UserID, trans_amount, trans_date, sold_num_unit, sold_profit, LoanID, InStID, IncomeID, SaveID, OverPayFeeID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setString(1, transaction.getTypeId());
             save.setInt(2, transaction.getUserId());
@@ -54,8 +54,8 @@ public class TransactionDaott implements TransactionDao {
         List<Transaction> transactions = new ArrayList<>();
         String sql = "SELECT * FROM TRANSACTION WHERE UserID = ? AND MONTH(trans_date) = ? AND YEAR(trans_date) = ? AND TypeID IN ('InSt_Buy', 'InSt_Sell') ORDER BY trans_date DESC";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             save.setInt(2, month);
@@ -82,8 +82,8 @@ public class TransactionDaott implements TransactionDao {
                      "WHERE t.UserID = ? AND MONTH(t.trans_date) = ? AND YEAR(t.trans_date) = ? AND t.IncomeID IS NOT NULL " + 
                      "ORDER BY t.trans_date DESC";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             save.setInt(2, month);
@@ -132,8 +132,8 @@ public class TransactionDaott implements TransactionDao {
     public List<Transaction> getBuyInvestmentTransactions(int userId, int month, int year) {
         List<Transaction> transactions = new ArrayList<>();
         String sql = "SELECT t.TransID, t.TypeID, t.UserID, t.trans_amount, t.trans_date, t.InStID FROM TRANSACTION t JOIN TYPE ty ON t.TypeID = ty.TypeID AND t.UserID = ty.UserID WHERE t.UserID = ? AND ty.type_description = 'InSt_Buy' AND MONTH(t.trans_date) = ? AND YEAR(t.trans_date) = ?";
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userId);
             save.setInt(2, month);
             save.setInt(3, year);
@@ -162,8 +162,8 @@ public class TransactionDaott implements TransactionDao {
         List<Transaction> transactions = new ArrayList<>();
         String sql ="SELECT t.TransID, t.TypeID, t.UserID, t.trans_amount, t.trans_date, t.sold_num_unit, t.sold_profit, t.InStID FROM TRANSACTION t JOIN TYPE ty ON t.TypeID = ty.TypeID AND t.UserID = ty.UserID WHERE t.UserID = ? AND ty.type_description = 'InSt_Sell' AND MONTH(t.trans_date) = ? AND YEAR(t.trans_date) = ?";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userId);
             save.setInt(2, month);
             save.setInt(3, year);
@@ -197,8 +197,8 @@ public class TransactionDaott implements TransactionDao {
 
         String sql ="SELECT t.TransID, t.TypeID, t.UserID, t.trans_amount, t.trans_date, t.IncomeID, i.income_name, ty.type_description FROM TRANSACTION t JOIN INCOME i ON t.IncomeID = i.IncomeID AND t.UserID = i.UserID JOIN TYPE ty ON t.TypeID = ty.TypeID AND t.UserID = ty.UserID WHERE t.UserID = ? AND t.IncomeID IS NOT NULL AND MONTH(t.trans_date) = ? AND YEAR(t.trans_date) = ? ORDER BY i.IncomeID, t.trans_date";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userId);
             save.setInt(2, month);
             save.setInt(3, year);
@@ -276,8 +276,8 @@ try (ResultSet result = save.executeQuery()) {
         long count = 0;
         String sql = "SELECT COUNT(*) FROM TRANSACTION WHERE UserID = ? AND MONTH(trans_date) = ? AND YEAR(trans_date) = ?";
 
-        try (Connection conn = ketnoidb.getConnection();
-             PreparedStatement save = conn.prepareStatement(sql)) {
+        try (Connection ketnoi = ketnoidb.getConnection();
+             PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, userId);
             save.setInt(2, month);

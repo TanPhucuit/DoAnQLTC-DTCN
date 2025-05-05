@@ -50,9 +50,9 @@ public class IncomeDaott implements IncomeDao {
              PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
             save.setInt(1, incomeId);
-            try (ResultSet rs = save.executeQuery()) {
-                if (rs.next()) {
-                    income = mapResultSetToInCome(rs);
+            try (ResultSet result = save.executeQuery()) {
+                if (result.next()) {
+                    income = mapResultSetToInCome(result);
                 }
             }
         } catch (SQLException e) {
@@ -70,9 +70,9 @@ public class IncomeDaott implements IncomeDao {
              PreparedStatement save = ketnoi.prepareStatement(sql)) {
             save.setInt(1, userId);
             save.setString(2, String.valueOf(month));
-            try (ResultSet rs = save.executeQuery()) {
-                while (rs.next()) {
-                    incomeList.add(mapResultSetToInCome(rs));
+            try (ResultSet result = save.executeQuery()) {
+                while (result.next()) {
+                    incomeList.add(mapResultSetToInCome(result));
                 }
             }
         } catch (SQLException e) {
@@ -81,27 +81,27 @@ public class IncomeDaott implements IncomeDao {
         }
         return incomeList;
      }
-    private InCome mapResultSetToInCome(ResultSet rs) throws SQLException {
+    private InCome mapResultSetToInCome(ResultSet result) throws SQLException {
         InCome income = new InCome();
-        income.setIncomeId(rs.getInt("IncomeID"));
-        income.setUserId(rs.getInt("UserID"));
-        income.setIc_month(rs.getString("ic_month"));
-        income.setIncome_name(rs.getString("income_name"));
-        income.setIncome_amount(rs.getDouble("income_amount"));
-        income.setRemain_income(rs.getDouble("remain_income"));
+        income.setIncomeId(result.getInt("IncomeID"));
+        income.setUserId(result.getInt("UserID"));
+        income.setIc_month(result.getString("ic_month"));
+        income.setIncome_name(result.getString("income_name"));
+        income.setIncome_amount(result.getDouble("income_amount"));
+        income.setRemain_income(result.getDouble("remain_income"));
         return income;
     }
     @Override
     public double GetTotalFirstIncome( int userid,int month) {
     	double total = 0.0;
-    		 String sql = "Select SUM(income_amount)as TotalFirstIncomefrom INCOME where userid = ? AND ic_month= ?";
+    		 String sql = "Select SUM(income_amount)as TotalFiresulttIncomefrom INCOME where userid = ? AND ic_month= ?";
     		 try(Connection ketnoi = ketnoidb.getConnection();
     				 PreparedStatement save = ketnoi.prepareStatement(sql)){
     			 save.setInt(1, userid);
     			 save.setString(2,String.valueOf(month));
     			 try (ResultSet result = save.executeQuery()){
     				 if(result.next() )
-    					 total = result.getDouble("TotalFirstIncome");
+    					 total = result.getDouble("TotalFiresulttIncome");
     				 else 
     					 total = 0.0;
     		 

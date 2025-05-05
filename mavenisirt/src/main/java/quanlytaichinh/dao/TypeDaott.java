@@ -27,8 +27,8 @@ public class TypeDaott implements TypeDao {
      public List<Type> getTypesByUserId(int userId){
     	List<Type> typeList = new ArrayList<>();
     	 String sql = "SELECT TypeID, UserID, max_amount, type_description, trans_type_rate FROM TYPE WHERE UserID = ?";
-    	 try (Connection conn = ketnoidb.getConnection();
-                 PreparedStatement save = conn.prepareStatement(sql)) {
+    	 try (Connection ketnoi = ketnoidb.getConnection();
+                 PreparedStatement save = ketnoi.prepareStatement(sql)) {
 
                 save.setInt(1, userId);
 
