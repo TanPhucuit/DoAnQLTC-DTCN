@@ -23,8 +23,10 @@ public interface InvestStorageDetailDAO {
     void delete(String inStId);
     
     // Additional methods
+   
     List<InvestStorageDetail> getDetailsByRiskRange(int minRisk, int maxRisk);
     BigDecimal getAverageCurPriceByRiskLevel(int riskLevel);
     BigDecimal getMaxStandardDeviation();
     BigDecimal getMinStandardDeviation();
+    //
 } 
