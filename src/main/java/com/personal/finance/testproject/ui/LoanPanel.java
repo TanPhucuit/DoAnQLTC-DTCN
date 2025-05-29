@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.Vector;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Connection;
+import com.personal.finance.testproject.util.DatabaseConnection;
 
 public class LoanPanel extends JPanel {
     private final LoanService loanService;
@@ -29,10 +33,16 @@ public class LoanPanel extends JPanel {
     private JTextField purposeIdField;
     private JComboBox<String> formIdComboBox;
     private JTextField dateOfPaymentField;
+    private Connection connection;
 
     public LoanPanel(LoanService loanService, int userId) {
         this.loanService = loanService;
         this.userId = userId;
+        try {
+            this.connection = DatabaseConnection.getConnection();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối database: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
         initComponents();
         loadData();
     }
@@ -67,6 +77,96 @@ public class LoanPanel extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
+
+        // Sau phần tạo mainPanel, thêm tab mới cho thanh toán khoản vay
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Quản lý khoản vay", mainPanel);
+
+        // Tab thanh toán khoản vay
+        JPanel payLoanPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbcPay = new GridBagConstraints();
+        gbcPay.insets = new Insets(5, 5, 5, 5);
+        gbcPay.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel lblLoanId = new JLabel("ID khoản vay:");
+        JTextField loanIdField = new JTextField(10);
+        gbcPay.gridx = 0; gbcPay.gridy = 0;
+        payLoanPanel.add(lblLoanId, gbcPay);
+        gbcPay.gridx = 1;
+        payLoanPanel.add(loanIdField, gbcPay);
+
+        JLabel lblSource = new JLabel("Nguồn tiền:");
+        JComboBox<String> sourceCombo = new JComboBox<>(new String[]{"Lương", "Phụ cấp"});
+        gbcPay.gridx = 0; gbcPay.gridy = 1;
+        payLoanPanel.add(lblSource, gbcPay);
+        gbcPay.gridx = 1;
+        payLoanPanel.add(sourceCombo, gbcPay);
+
+        JLabel lblPayDate = new JLabel("Ngày thanh toán (yyyy-MM-dd):");
+        JTextField payDateField = new JTextField(10);
+        gbcPay.gridx = 0; gbcPay.gridy = 2;
+        payLoanPanel.add(lblPayDate, gbcPay);
+        gbcPay.gridx = 1;
+        payLoanPanel.add(payDateField, gbcPay);
+
+        JButton btnPay = new JButton("Thanh toán khoản vay");
+        gbcPay.gridx = 0; gbcPay.gridy = 3;
+        gbcPay.gridwidth = 2;
+        payLoanPanel.add(btnPay, gbcPay);
+
+        btnPay.addActionListener(e -> {
+            try {
+                int loanId = Integer.parseInt(loanIdField.getText());
+                String source = (String)sourceCombo.getSelectedItem();
+                String payDate = payDateField.getText();
+                String month = payDate.split("-")[1];
+                // Lấy số tiền phải trả kỳ này
+                String sqlLoan = "SELECT pay_per_term FROM LOAN WHERE LoanID = ? AND UserID = ?";
+                PreparedStatement stmtLoan = connection.prepareStatement(sqlLoan);
+                stmtLoan.setInt(1, loanId);
+                stmtLoan.setInt(2, userId);
+                ResultSet rsLoan = stmtLoan.executeQuery();
+                if (!rsLoan.next()) throw new Exception("Không tìm thấy khoản vay");
+                BigDecimal payAmount = rsLoan.getBigDecimal("pay_per_term");
+                // Tìm IncomeID phù hợp
+                String sqlIncome = "SELECT IncomeID, remain_income FROM INCOME WHERE UserID = ? AND ic_month = ? AND income_name = ? ORDER BY IncomeID LIMIT 1";
+                PreparedStatement stmtIncome = connection.prepareStatement(sqlIncome);
+                stmtIncome.setInt(1, userId);
+                stmtIncome.setString(2, month);
+                stmtIncome.setString(3, source);
+                ResultSet rsIncome = stmtIncome.executeQuery();
+                if (!rsIncome.next()) throw new Exception("Không tìm thấy nguồn tiền phù hợp");
+                int incomeId = rsIncome.getInt("IncomeID");
+                BigDecimal remain = rsIncome.getBigDecimal("remain_income");
+                if (remain.compareTo(payAmount) < 0) throw new Exception("Số dư nguồn tiền không đủ");
+                // Trừ remain_income
+                String sqlUpdate = "UPDATE INCOME SET remain_income = remain_income - ? WHERE IncomeID = ? AND UserID = ?";
+                PreparedStatement stmtUpdate = connection.prepareStatement(sqlUpdate);
+                stmtUpdate.setBigDecimal(1, payAmount);
+                stmtUpdate.setInt(2, incomeId);
+                stmtUpdate.setInt(3, userId);
+                stmtUpdate.executeUpdate();
+                // Thêm transaction
+                String sqlTrans = "INSERT INTO TRANSACTION (UserID, TypeID, trans_amount, trans_date, LoanID, IncomeID) VALUES (?, 'loan_pay', ?, ?, ?, ?)";
+                PreparedStatement stmtTrans = connection.prepareStatement(sqlTrans);
+                stmtTrans.setInt(1, userId);
+                stmtTrans.setBigDecimal(2, payAmount);
+                stmtTrans.setDate(3, java.sql.Date.valueOf(payDate));
+                stmtTrans.setInt(4, loanId);
+                stmtTrans.setInt(5, incomeId);
+                stmtTrans.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Thanh toán khoản vay thành công!");
+                loanIdField.setText("");
+                payDateField.setText("");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi thanh toán khoản vay: " + ex.getMessage());
+            }
+        });
+
+        tabbedPane.addTab("Thanh toán khoản vay", payLoanPanel);
+        removeAll();
+        setLayout(new BorderLayout());
+        add(tabbedPane, BorderLayout.CENTER);
     }
 
     private JPanel createFormPanel() {

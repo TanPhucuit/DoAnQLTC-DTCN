@@ -27,7 +27,7 @@ public class IncomeServiceImpl implements IncomeService {
         if (userId <= 0) {
             throw new IllegalArgumentException("UserID must be positive");
         }
-        return incomeDAO.findById(incomeId, userId);
+        return incomeDAO.findById(incomeId);
     }
 
     @Override
@@ -44,13 +44,6 @@ public class IncomeServiceImpl implements IncomeService {
         return incomeDAO.findByMonth(userId, month);
     }
 
-    @Override
-    public List<Income> getIncomesByYear(int userId, String year) {
-        if (year == null || !year.matches("^\\d{4}$")) {
-            throw new IllegalArgumentException("Invalid year format. Must be YYYY");
-        }
-        return incomeDAO.findByYear(userId, year);
-    }
 
     @Override
     public List<Income> getAllIncomes() {

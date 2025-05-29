@@ -6,6 +6,10 @@ import java.util.Date;
 public class Income {
     private int incomeId;
     private int userId;
+    private Date incomeDate;
+    private BigDecimal salary;
+    private BigDecimal allowance;
+    private String description;
     private String incomeName;
     private BigDecimal incomeAmount;
     private String icMonth;
@@ -24,15 +28,20 @@ public class Income {
         setRemainIncome(remainIncome);
     }
 
+    public Income(int userId, Date incomeDate, BigDecimal salary, BigDecimal allowance, String description) {
+        this.userId = userId;
+        this.incomeDate = incomeDate;
+        this.salary = salary;
+        this.allowance = allowance;
+        this.description = description;
+    }
+
     // Getters and Setters
     public int getIncomeId() {
         return incomeId;
     }
 
     public void setIncomeId(int incomeId) {
-        if (incomeId <= 0) {
-            throw new IllegalArgumentException("IncomeID must be positive");
-        }
         this.incomeId = incomeId;
     }
 
@@ -42,9 +51,50 @@ public class Income {
 
     public void setUserId(int userId) {
         if (userId <= 0) {
-            throw new IllegalArgumentException("UserID must be positive");
+            throw new IllegalArgumentException("User ID must be positive");
         }
         this.userId = userId;
+    }
+
+    public Date getIncomeDate() {
+        return incomeDate;
+    }
+
+    public void setIncomeDate(Date incomeDate) {
+        if (incomeDate == null) {
+            throw new IllegalArgumentException("Income date cannot be null");
+        }
+        this.incomeDate = incomeDate;
+    }
+
+    public BigDecimal getSalary() {
+        return salary;
+    }
+
+    public void setSalary(BigDecimal salary) {
+        if (salary == null || salary.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Salary cannot be null or negative");
+        }
+        this.salary = salary;
+    }
+
+    public BigDecimal getAllowance() {
+        return allowance;
+    }
+
+    public void setAllowance(BigDecimal allowance) {
+        if (allowance == null || allowance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Allowance cannot be null or negative");
+        }
+        this.allowance = allowance;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getIncomeName() {

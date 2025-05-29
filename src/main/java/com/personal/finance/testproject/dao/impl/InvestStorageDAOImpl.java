@@ -264,6 +264,4 @@ public class InvestStorageDAOImpl implements InvestStorageDAO {
         investStorage.setUpDate(upDate);
         return investStorage;
     }
-   
-    
 } 

@@ -8,7 +8,7 @@ import java.util.List;
 import java.math.BigDecimal;
 
 public class IncomeDAOImpl implements IncomeDAO {
-    private Connection connection;
+    private final Connection connection;
 
     public IncomeDAOImpl(Connection connection) {
         this.connection = connection;
@@ -16,15 +16,13 @@ public class IncomeDAOImpl implements IncomeDAO {
 
     @Override
     public void insert(Income income) {
-        validateIncome(income);
-        String sql = "INSERT INTO INCOME (UserID, ic_month, income_name, income_amount, remain_income) " +
-                    "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO INCOME (UserID, income_date, salary, allowance, description) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, income.getUserId());
-            stmt.setString(2, income.getIcMonth());
-            stmt.setString(3, income.getIncomeName());
-            stmt.setBigDecimal(4, income.getIncomeAmount());
-            stmt.setBigDecimal(5, income.getRemainIncome());
+            stmt.setDate(2, new java.sql.Date(income.getIncomeDate().getTime()));
+            stmt.setBigDecimal(3, income.getSalary());
+            stmt.setBigDecimal(4, income.getAllowance());
+            stmt.setString(5, income.getDescription());
             stmt.executeUpdate();
             
             try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -38,11 +36,10 @@ public class IncomeDAOImpl implements IncomeDAO {
     }
 
     @Override
-    public Income findById(int incomeId, int userId) {
-        String sql = "SELECT * FROM INCOME WHERE IncomeID = ? AND UserID = ?";
+    public Income findById(int incomeId) {
+        String sql = "SELECT * FROM INCOME WHERE income_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, incomeId);
-            stmt.setInt(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToIncome(rs);
@@ -57,7 +54,7 @@ public class IncomeDAOImpl implements IncomeDAO {
     @Override
     public List<Income> findByUserId(int userId) {
         List<Income> incomes = new ArrayList<>();
-        String sql = "SELECT * FROM INCOME WHERE UserID = ?";
+        String sql = "SELECT * FROM INCOME WHERE UserID = ? ORDER BY income_date DESC";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -74,7 +71,7 @@ public class IncomeDAOImpl implements IncomeDAO {
     @Override
     public List<Income> findByMonth(int userId, String month) {
         List<Income> incomes = new ArrayList<>();
-        String sql = "SELECT * FROM INCOME WHERE UserID = ? AND ic_month = ?";
+        String sql = "SELECT * FROM INCOME WHERE UserID = ? AND ic_month = ? ORDER BY ic_month DESC";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             stmt.setString(2, month);
@@ -92,7 +89,7 @@ public class IncomeDAOImpl implements IncomeDAO {
     @Override
     public List<Income> findAll() {
         List<Income> incomes = new ArrayList<>();
-        String sql = "SELECT * FROM INCOME";
+        String sql = "SELECT * FROM INCOME ORDER BY income_date DESC";
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -106,16 +103,13 @@ public class IncomeDAOImpl implements IncomeDAO {
 
     @Override
     public void update(Income income) {
-        validateIncome(income);
-        String sql = "UPDATE INCOME SET income_name = ?, income_amount = ?, remain_income = ? " +
-                    "WHERE IncomeID = ? AND UserID = ? AND ic_month = ?";
+        String sql = "UPDATE INCOME SET income_date = ?, salary = ?, allowance = ?, description = ? WHERE income_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, income.getIncomeName());
-            stmt.setBigDecimal(2, income.getIncomeAmount());
-            stmt.setBigDecimal(3, income.getRemainIncome());
-            stmt.setInt(4, income.getIncomeId());
-            stmt.setInt(5, income.getUserId());
-            stmt.setString(6, income.getIcMonth());
+            stmt.setDate(1, new java.sql.Date(income.getIncomeDate().getTime()));
+            stmt.setBigDecimal(2, income.getSalary());
+            stmt.setBigDecimal(3, income.getAllowance());
+            stmt.setString(4, income.getDescription());
+            stmt.setInt(5, income.getIncomeId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating income", e);
@@ -123,14 +117,96 @@ public class IncomeDAOImpl implements IncomeDAO {
     }
 
     @Override
-    public void updateRemainIncome(int incomeId, int userId, BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount cannot be null or negative");
-        }
-        String sql = "UPDATE INCOME SET remain_income = remain_income - ? " +
-                    "WHERE IncomeID = ? AND UserID = ?";
+    public void updateSalary(int incomeId, BigDecimal salary) {
+        String sql = "UPDATE INCOME SET salary = ? WHERE income_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setBigDecimal(1, amount.setScale(5, BigDecimal.ROUND_HALF_UP));
+            stmt.setBigDecimal(1, salary);
+            stmt.setInt(2, incomeId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating salary", e);
+        }
+    }
+
+    @Override
+    public void updateAllowance(int incomeId, BigDecimal allowance) {
+        String sql = "UPDATE INCOME SET allowance = ? WHERE income_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, allowance);
+            stmt.setInt(2, incomeId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating allowance", e);
+        }
+    }
+
+    @Override
+    public void delete(int incomeId) {
+        String sql = "DELETE FROM INCOME WHERE income_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, incomeId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting income", e);
+        }
+    }
+
+    @Override
+    public BigDecimal getTotalSalaryByMonth(int userId, int month) {
+        String sql = "SELECT SUM(salary) as total FROM INCOME WHERE UserID = ? AND MONTH(income_date) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, month);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("total");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error calculating total salary by month", e);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public BigDecimal getTotalAllowanceByMonth(int userId, int month) {
+        String sql = "SELECT SUM(allowance) as total FROM INCOME WHERE UserID = ? AND MONTH(income_date) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, month);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("total");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error calculating total allowance by month", e);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public BigDecimal getTotalIncomeByMonth(int userId, int month) {
+        String sql = "SELECT SUM(salary + allowance) as total FROM INCOME WHERE UserID = ? AND MONTH(income_date) = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, month);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("total");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error calculating total income by month", e);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    @Override
+    public void updateRemainIncome(int incomeId, int userId, BigDecimal amount) {
+        String sql = "UPDATE INCOME SET remain_income = ? WHERE IncomeID = ? AND UserID = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, amount);
             stmt.setInt(2, incomeId);
             stmt.setInt(3, userId);
             stmt.executeUpdate();
@@ -139,70 +215,14 @@ public class IncomeDAOImpl implements IncomeDAO {
         }
     }
 
-    @Override
-    public List<Income> findByYear(int userId, String year) {
-        List<Income> incomes = new ArrayList<>();
-        String query = "SELECT * FROM INCOME WHERE UserID = ? AND SUBSTRING(ic_month, 1, 4) = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, userId);
-            stmt.setString(2, year);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Income income = new Income();
-                income.setIncomeId(rs.getInt("income_id"));
-                income.setUserId(rs.getInt("user_id"));
-                income.setIncomeName(rs.getString("income_name"));
-                income.setIncomeAmount(rs.getBigDecimal("income_amount"));
-                income.setIcMonth(rs.getString("ic_month"));
-                income.setRemainIncome(rs.getBigDecimal("remain_income"));
-                java.sql.Date upDate = rs.getDate("up_date");
-                if (upDate == null || upDate.toString().equals("0000-00-00")) {
-                    upDate = java.sql.Date.valueOf("2000-01-01");
-                }
-                income.setUpDate(upDate);
-                incomes.add(income);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding incomes by year: " + e.getMessage(), e);
-        }
-        return incomes;
-    }
-
     private Income mapResultSetToIncome(ResultSet rs) throws SQLException {
         Income income = new Income();
-        income.setIncomeId(rs.getInt("IncomeID"));
+        income.setIncomeId(rs.getInt("income_id"));
         income.setUserId(rs.getInt("UserID"));
-        income.setIcMonth(rs.getString("ic_month"));
-        income.setIncomeName(rs.getString("income_name"));
-        income.setIncomeAmount(rs.getBigDecimal("income_amount"));
-        income.setRemainIncome(rs.getBigDecimal("remain_income"));
+        income.setIncomeDate(rs.getDate("income_date"));
+        income.setSalary(rs.getBigDecimal("salary"));
+        income.setAllowance(rs.getBigDecimal("allowance"));
+        income.setDescription(rs.getString("description"));
         return income;
-    }
-
-    private void validateIncome(Income income) {
-        if (income == null) {
-            throw new IllegalArgumentException("Income cannot be null");
-        }
-        if (income.getUserId() <= 0) {
-            throw new IllegalArgumentException("UserID must be positive");
-        }
-        if (income.getIncomeId() <= 0) {
-            throw new IllegalArgumentException("IncomeID must be positive");
-        }
-        if (income.getIcMonth() == null || !income.getIcMonth().matches("^([1-9]|1[0-2])$")) {
-            throw new IllegalArgumentException("Invalid month value. Must be between 1 and 12");
-        }
-        if (income.getIncomeName() == null || income.getIncomeName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Income name cannot be null or empty");
-        }
-        if (income.getIncomeAmount() == null || income.getIncomeAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Income amount cannot be null or negative");
-        }
-        if (income.getRemainIncome() == null || income.getRemainIncome().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Remain income cannot be null or negative");
-        }
-        if (income.getRemainIncome().compareTo(income.getIncomeAmount()) > 0) {
-            throw new IllegalArgumentException("Remain income cannot be greater than income amount");
-        }
     }
 } 

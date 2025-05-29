@@ -10,7 +10,6 @@ public interface IncomeService {
     Income getIncome(int incomeId, int userId);
     List<Income> getIncomesByUserId(int userId);
     List<Income> getIncomesByMonth(int userId, String month);
-    List<Income> getIncomesByYear(int userId, String year);
     List<Income> getAllIncomes();
     void updateIncome(Income income);
     void updateRemainIncome(int incomeId, int userId, BigDecimal amount);
@@ -37,7 +36,7 @@ class IncomeServiceImpl implements IncomeService {
         if (userId <= 0) {
             throw new IllegalArgumentException("UserID must be positive");
         }
-        return incomeDAO.findById(incomeId, userId);
+        return incomeDAO.findById(incomeId);
     }
 
     @Override
@@ -52,14 +51,6 @@ class IncomeServiceImpl implements IncomeService {
     public List<Income> getIncomesByMonth(int userId, String month) {
         validateMonth(month);
         return incomeDAO.findByMonth(userId, month);
-    }
-
-    @Override
-    public List<Income> getIncomesByYear(int userId, String year) {
-        if (year == null || !year.matches("^\\d{4}$")) {
-            throw new IllegalArgumentException("Invalid year format. Must be YYYY");
-        }
-        return incomeDAO.findByYear(userId, year);
     }
 
     @Override

@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.Vector;
 import com.personal.finance.testproject.util.DatabaseConnection;
 import javax.swing.border.EmptyBorder;
+import com.toedter.calendar.JDateChooser;
 
 public class TransactionPanel extends JPanel {
     private final int userId;
@@ -36,18 +37,29 @@ public class TransactionPanel extends JPanel {
         gbcAdd.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel lblType = new JLabel("Loại giao dịch:");
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"Thu nhập", "Chi tiêu", "Chuyển khoản"});
+        JComboBox<String> typeCombo = new JComboBox<>();
+        try {
+            String sql = "SELECT type_description FROM TYPE WHERE UserID = ? AND TypeID NOT IN ('InSt_Buy','InSt_Sell','loan_pay','loan_fee_pay')";
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                typeCombo.addItem(rs.getString("type_description"));
+            }
+        } catch (SQLException e) {
+            typeCombo.addItem("Lỗi tải loại giao dịch");
+        }
         gbcAdd.gridx = 0; gbcAdd.gridy = 0;
         addPanel.add(lblType, gbcAdd);
         gbcAdd.gridx = 1;
         addPanel.add(typeCombo, gbcAdd);
 
-        JLabel lblPurpose = new JLabel("Mục đích:");
-        JComboBox<String> purposeCombo = new JComboBox<>();
+        JLabel lblSource = new JLabel("Nguồn tiền:");
+        JComboBox<String> sourceCombo = new JComboBox<>(new String[]{"Lương", "Phụ cấp"});
         gbcAdd.gridx = 0; gbcAdd.gridy = 1;
-        addPanel.add(lblPurpose, gbcAdd);
+        addPanel.add(lblSource, gbcAdd);
         gbcAdd.gridx = 1;
-        addPanel.add(purposeCombo, gbcAdd);
+        addPanel.add(sourceCombo, gbcAdd);
 
         JLabel lblAmount = new JLabel("Số tiền:");
         JTextField amountField = new JTextField(10);
@@ -56,12 +68,13 @@ public class TransactionPanel extends JPanel {
         gbcAdd.gridx = 1;
         addPanel.add(amountField, gbcAdd);
 
-        JLabel lblDate = new JLabel("Ngày (yyyy-MM-dd):");
-        JTextField dateField = new JTextField(10);
+        JLabel lblDate = new JLabel("Ngày giao dịch:");
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("yyyy-MM-dd");
         gbcAdd.gridx = 0; gbcAdd.gridy = 3;
         addPanel.add(lblDate, gbcAdd);
         gbcAdd.gridx = 1;
-        addPanel.add(dateField, gbcAdd);
+        addPanel.add(dateChooser, gbcAdd);
 
         JLabel lblNote = new JLabel("Ghi chú:");
         JTextField noteField = new JTextField(20);
@@ -165,7 +178,7 @@ public class TransactionPanel extends JPanel {
         add(formPanel, gbc);
 
         // Bảng giao dịch
-        String[] columnNames = {"ID", "Loại giao dịch", "Mục đích", "Số tiền", "Ngày giao dịch", "Ghi chú"};
+        String[] columnNames = {"ID", "Loại giao dịch", "Số tiền", "Ngày giao dịch", "Ghi chú"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
@@ -182,29 +195,62 @@ public class TransactionPanel extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         add(scrollPane, gbc);
 
-        // Load dữ liệu mục đích
-        loadPurposes(purposeCombo);
         // Load dữ liệu giao dịch
         loadTransactionData(model);
         btnAdd.addActionListener(e -> {
             try {
+                String typeDesc = (String)typeCombo.getSelectedItem();
                 String typeId = "";
-                switch((String)typeCombo.getSelectedItem()) {
-                    case "Thu nhập": typeId = "INCOME"; break;
-                    case "Chi tiêu": typeId = "SP_Food"; break;
-                    case "Chuyển khoản": typeId = "TRANSFER"; break;
+                String sqlType = "SELECT TypeID FROM TYPE WHERE UserID = ? AND type_description = ?";
+                PreparedStatement stmtType = connection.prepareStatement(sqlType);
+                stmtType.setInt(1, userId);
+                stmtType.setString(2, typeDesc);
+                ResultSet rsType = stmtType.executeQuery();
+                if (rsType.next()) typeId = rsType.getString("TypeID");
+                String source = (String)sourceCombo.getSelectedItem();
+                java.util.Date utilDate = dateChooser.getDate();
+                if (utilDate == null) throw new Exception("Vui lòng chọn ngày giao dịch");
+                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+                String month = String.valueOf(utilDate.getMonth() + 1);
+                String sqlIncome = "SELECT IncomeID, remain_income FROM INCOME WHERE UserID = ? AND ic_month = ? AND income_name = ? ORDER BY IncomeID LIMIT 1";
+                PreparedStatement stmtIncome = connection.prepareStatement(sqlIncome);
+                stmtIncome.setInt(1, userId);
+                stmtIncome.setString(2, month);
+                stmtIncome.setString(3, source);
+                ResultSet rsIncome = stmtIncome.executeQuery();
+                if (!rsIncome.next()) {
+                    throw new Exception("Không tìm thấy thu nhập " + source + " trong tháng " + month);
                 }
-                String sql = "INSERT INTO TRANSACTION (UserID, TypeID, trans_amount, trans_date) VALUES (?, ?, ?, ?)";
+                int incomeId = rsIncome.getInt("IncomeID");
+                BigDecimal remain = rsIncome.getBigDecimal("remain_income");
+                BigDecimal amount = new BigDecimal(amountField.getText().trim());
+                if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new Exception("Số tiền phải lớn hơn 0");
+                }
+                if (remain.compareTo(amount) < 0) {
+                    throw new Exception("Số dư nguồn tiền không đủ");
+                }
+                // Trừ remain_income
+                String sqlUpdate = "UPDATE INCOME SET remain_income = remain_income - ? WHERE IncomeID = ? AND UserID = ?";
+                PreparedStatement stmtUpdate = connection.prepareStatement(sqlUpdate);
+                stmtUpdate.setBigDecimal(1, amount);
+                stmtUpdate.setInt(2, incomeId);
+                stmtUpdate.setInt(3, userId);
+                stmtUpdate.executeUpdate();
+                // Thêm transaction
+                String sql = "INSERT INTO TRANSACTION (UserID, TypeID, trans_amount, trans_date, IncomeID) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement stmt = connection.prepareStatement(sql);
                 stmt.setInt(1, userId);
                 stmt.setString(2, typeId);
-                stmt.setBigDecimal(3, new java.math.BigDecimal(amountField.getText()));
-                stmt.setDate(4, java.sql.Date.valueOf(dateField.getText()));
+                stmt.setBigDecimal(3, amount);
+                stmt.setDate(4, sqlDate);
+                stmt.setInt(5, incomeId);
                 stmt.executeUpdate();
                 loadTransactionData(model);
                 amountField.setText("");
-                dateField.setText("");
+                dateChooser.setDate(null);
                 noteField.setText("");
+                JOptionPane.showMessageDialog(this, "Thêm giao dịch thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi thêm giao dịch: " + ex.getMessage());
             }
@@ -240,7 +286,6 @@ public class TransactionPanel extends JPanel {
                 Vector<Object> row = new Vector<>();
                 row.add(rs.getInt("TransID"));
                 row.add(rs.getString("type_description"));
-                row.add(""); // Không có mục đích
                 row.add(rs.getBigDecimal("trans_amount"));
                 row.add(rs.getDate("trans_date"));
                 row.add(rs.getString("note"));
@@ -248,21 +293,6 @@ public class TransactionPanel extends JPanel {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu giao dịch: " + e.getMessage());
-        }
-    }
-
-    private void loadPurposes(JComboBox<String> comboBox) {
-        comboBox.removeAllItems();
-        try {
-            String sql = "SELECT PurposeID, purpose_name FROM PURPOSE WHERE UserID = ?";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                comboBox.addItem(rs.getInt("PurposeID") + " - " + rs.getString("purpose_name"));
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải danh sách mục đích: " + e.getMessage());
         }
     }
 
@@ -309,7 +339,6 @@ public class TransactionPanel extends JPanel {
                 Vector<Object> row = new Vector<>();
                 row.add(rs.getInt("TransID"));
                 row.add(rs.getString("type_description"));
-                row.add(""); // Không có mục đích
                 row.add(rs.getBigDecimal("trans_amount"));
                 row.add(rs.getDate("trans_date"));
                 row.add(rs.getString("note"));
