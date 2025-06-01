@@ -112,6 +112,14 @@ public class InvestStorageDetailDAOImpl implements InvestStorageDetailDAO {
                 stmt.setString(2, "IN_BTC");
                 affected = stmt.executeUpdate();
                 System.out.println("[LOG][DAO] Update cur_price for IN_BTC: " + curPrice + " (affected rows: " + affected + ")");
+            } else if ("IN_ETH".equals(inStId)) {
+                stmt.setString(2, "Short_ETH");
+                affected = stmt.executeUpdate();
+                System.out.println("[LOG][DAO] Update cur_price for Short_ETH: " + curPrice + " (affected rows: " + affected + ")");
+            } else if ("Short_ETH".equals(inStId)) {
+                stmt.setString(2, "IN_ETH");
+                affected = stmt.executeUpdate();
+                System.out.println("[LOG][DAO] Update cur_price for IN_ETH: " + curPrice + " (affected rows: " + affected + ")");
             }
             
             if (affected == 0) {

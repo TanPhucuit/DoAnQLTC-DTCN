@@ -32,6 +32,7 @@ public class PriceUpdateService {
         SPOT_SYMBOL_MAPPING.put("IN_BTC", "BTC-USDT");
         SPOT_SYMBOL_MAPPING.put("Short_BTC", "BTC-USDT");
         SPOT_SYMBOL_MAPPING.put("IN_ETH", "ETH-USDT");
+        SPOT_SYMBOL_MAPPING.put("Short_ETH", "ETH-USDT");
         FUTURE_SYMBOL_MAPPING.put("IN_GOLD", "XAUUSDT");
         FUTURE_SYMBOL_MAPPING.put("ST_GOLD", "XAUUSDT");
         FUTURE_SYMBOL_MAPPING.put("IN_CrudeOilBrent", "BRENTUSDT");
