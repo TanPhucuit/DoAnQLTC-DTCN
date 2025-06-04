@@ -34,7 +34,7 @@ public class SavingManagementPanel extends JPanel {
 
         // Create table model
         String[] columnNames = {"ID", "Tên khoản tiết kiệm", "Mục đích", " Số tài khoản ", 
-                              "Số tiền", "Số dư còn lại", "Ngày cập nhật", "Ghi chú"};
+                              "Số tiền", "Số dư còn lại", "Ghi chú"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -244,7 +244,6 @@ public class SavingManagementPanel extends JPanel {
                 row.add(rs.getString("BankAccountNumber") + " - " + rs.getString("BankName"));
                 row.add(rs.getBigDecimal("save_amount"));
                 row.add(rs.getBigDecimal("remain_save"));
-                row.add(rs.getDate("up_date"));
                 row.add(rs.getString("description"));
                 tableModel.addRow(row);
             }

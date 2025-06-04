@@ -69,7 +69,7 @@ public class InvestStoragePanel extends JPanel {
         // Tab 1: Danh mục đầu tư của tôi
         JPanel myInvestPanel = new JPanel(new BorderLayout());
         myInvestPanel.setBackground(PANEL_BG);
-        String[] investCols = {"Mã tài sản", "Số lượng", "Giá mua TB", "Lợi nhuận ước tính", "Ngày cập nhật"};
+        String[] investCols = {"Mã tài sản", "Số lượng", "Giá mua TB", "Lợi nhuận ước tính"};
         investModel = new DefaultTableModel(investCols, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
