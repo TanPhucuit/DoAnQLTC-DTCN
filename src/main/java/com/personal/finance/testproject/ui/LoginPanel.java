@@ -36,85 +36,86 @@ public class LoginPanel extends JPanel {
 
         // Title
         JLabel titleLabel = new JLabel("ĐĂNG NHẬP");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
-        mainPanel.add(Box.createVerticalStrut(30));
+        mainPanel.add(Box.createVerticalStrut(24));
 
         // Username field
         JLabel usernameLabel = new JLabel("Tên đăng nhập:");
-        usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
         usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(usernameLabel);
-        mainPanel.add(Box.createVerticalStrut(5));
+        mainPanel.add(Box.createVerticalStrut(6));
 
         usernameField = new JTextField(20);
-        usernameField.setMaximumSize(new Dimension(300, 35));
+        usernameField.setMaximumSize(new Dimension(260, 32));
         usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
         usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
         mainPanel.add(usernameField);
-        mainPanel.add(Box.createVerticalStrut(15));
+        mainPanel.add(Box.createVerticalStrut(14));
 
         // Password field
         JLabel passwordLabel = new JLabel("Mật khẩu:");
-        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
         passwordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(passwordLabel);
-        mainPanel.add(Box.createVerticalStrut(5));
+        mainPanel.add(Box.createVerticalStrut(6));
 
         passwordField = new JPasswordField(20);
-        passwordField.setMaximumSize(new Dimension(300, 35));
+        passwordField.setMaximumSize(new Dimension(260, 32));
         passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
         passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         mainPanel.add(passwordField);
-        mainPanel.add(Box.createVerticalStrut(20));
+        mainPanel.add(Box.createVerticalStrut(16));
 
         // Message label for feedback
         messageLabel = new JLabel("");
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        messageLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         messageLabel.setForeground(Color.RED);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         mainPanel.add(messageLabel);
-        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(Box.createVerticalStrut(8));
 
         // Login button
         loginButton = new JButton("Đăng nhập");
-        loginButton.setBackground(new Color(0x2E2E5D));
+        loginButton.setBackground(new Color(0x008BCF));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
         loginButton.setFocusPainted(false);
         loginButton.setBorderPainted(false);
-        loginButton.setMaximumSize(new Dimension(300, 40));
+        loginButton.setMaximumSize(new Dimension(260, 36));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         mainPanel.add(loginButton);
-        mainPanel.add(Box.createVerticalStrut(15));
+        mainPanel.add(Box.createVerticalStrut(10));
 
         // Register button
         registerButton = new JButton("Đăng ký tài khoản mới");
-        registerButton.setBackground(new Color(0x2E2E5D));
+        registerButton.setBackground(new Color(0x008BCF));
         registerButton.setForeground(Color.WHITE);
-        registerButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        registerButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         registerButton.setFocusPainted(false);
         registerButton.setBorderPainted(false);
-        registerButton.setMaximumSize(new Dimension(300, 30));
+        registerButton.setMaximumSize(new Dimension(260, 32));
         registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         mainPanel.add(registerButton);
-        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(Box.createVerticalStrut(8));
 
         // Change password button
         changePasswordButton = new JButton("Quên mật khẩu?");
-        changePasswordButton.setBackground(new Color(0x2E2E5D));
+        changePasswordButton.setBackground(new Color(0x008BCF));
         changePasswordButton.setForeground(Color.WHITE);
-        changePasswordButton.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        changePasswordButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         changePasswordButton.setFocusPainted(false);
         changePasswordButton.setBorderPainted(false);
-        changePasswordButton.setMaximumSize(new Dimension(300, 30));
+        changePasswordButton.setMaximumSize(new Dimension(260, 32));
         changePasswordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         changePasswordButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         mainPanel.add(changePasswordButton);
+        mainPanel.add(Box.createVerticalStrut(2));
 
         // Add main panel to center
         add(mainPanel, BorderLayout.CENTER);
@@ -173,7 +174,7 @@ public class LoginPanel extends JPanel {
                     // Re-enable login button
                     loginButton.setEnabled(true);
                     loginButton.setText("Đăng nhập");
-                    loginButton.setBackground(new Color(0x2E2E5D));
+                    loginButton.setBackground(new Color(0x008BCF));
                 }
             });
         });

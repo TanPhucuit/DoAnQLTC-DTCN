@@ -12,6 +12,7 @@ import com.toedter.calendar.JDateChooser;
 import com.personal.finance.testproject.service.TransactionService;
 import java.util.List;
 import com.personal.finance.testproject.model.Transaction;
+import com.personal.finance.testproject.service.PriceUpdateService;
 
 public class InvestStoragePanel extends JPanel {
     private final int userId;
@@ -22,9 +23,12 @@ public class InvestStoragePanel extends JPanel {
     private static final Color TEXT_DARK = new Color(0x333333);
     private static final Color ACCENT = new Color(0x2196F3);
     private TransactionService transactionService;
+    private ManageSearchFrame parentFrame;
+    private DefaultTableModel investModel;
 
-    public InvestStoragePanel(int userId) {
+    public InvestStoragePanel(int userId, ManageSearchFrame parentFrame) {
         this.userId = userId;
+        this.parentFrame = parentFrame;
         try {
             this.connection = DatabaseConnection.getConnection();
             this.transactionService = new TransactionService();
@@ -35,21 +39,38 @@ public class InvestStoragePanel extends JPanel {
     }
 
     private void initializeUI() {
-        setLayout(new GridBagLayout());
+        setLayout(new BorderLayout());
         setBackground(MAIN_BG);
         setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 16));
         tabbedPane.setBackground(PANEL_BG);
         tabbedPane.setForeground(TEXT_DARK);
-        tabbedPane.setPreferredSize(new Dimension(1000, 500));
+
+        // Thêm nút quay lại ở đầu initializeUI()
+        JButton btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> {
+            if (parentFrame != null) {
+                parentFrame.showDashboard();
+            }
+        });
+        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        backPanel.setBackground(MAIN_BG);
+        backPanel.add(btnBack);
+        add(backPanel, BorderLayout.NORTH);
 
         // Tab 1: Danh mục đầu tư của tôi
         JPanel myInvestPanel = new JPanel(new BorderLayout());
         myInvestPanel.setBackground(PANEL_BG);
         String[] investCols = {"Mã tài sản", "Số lượng", "Giá mua TB", "Lợi nhuận ước tính", "Ngày cập nhật"};
-        DefaultTableModel investModel = new DefaultTableModel(investCols, 0) {
+        investModel = new DefaultTableModel(investCols, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         JTable investTable = new JTable(investModel);
@@ -95,7 +116,14 @@ public class InvestStoragePanel extends JPanel {
         DefaultTableModel detailModel = new DefaultTableModel(detailCols, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
-        JTable detailTable = new JTable(detailModel);
+        JTable detailTable = new JTable(detailModel) {
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                c.setForeground(Color.BLACK);
+                return c;
+            }
+        };
         detailTable.setRowHeight(36);
         detailTable.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         detailTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -114,111 +142,51 @@ public class InvestStoragePanel extends JPanel {
         detailPanel.add(containerPanel, BorderLayout.CENTER);
         loadInvestStorageDetailData(detailModel);
         tabbedPane.addTab("Thông tin chi tiết tài sản", detailPanel);
-        
-        // Add refresh button action
-        refreshButton.addActionListener(e -> {
-            try {
-                // Create and use PriceUpdateService
-                com.personal.finance.testproject.dao.InvestStorageDetailDAO detailDAO = 
-                    new com.personal.finance.testproject.dao.impl.InvestStorageDetailDAOImpl(connection);
-                com.personal.finance.testproject.service.PriceUpdateService priceService = 
-                    new com.personal.finance.testproject.service.PriceUpdateService(detailDAO);
-                priceService.updatePrices();
-                
-                // Refresh tables
-                loadInvestStorageDetailData(detailModel);
-                loadInvestStorageData(investModel);
-                
-                JOptionPane.showMessageDialog(this, 
-                    "Cập nhật giá thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Lỗi khi cập nhật giá: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
 
         // Tab 3: Bán tài sản
-        JPanel sellPanel = new JPanel(new GridBagLayout());
+        JPanel sellPanel = new JPanel(new BorderLayout());
         sellPanel.setBackground(PANEL_BG);
-        GridBagConstraints gbcSell = new GridBagConstraints();
-        gbcSell.insets = new Insets(5, 5, 5, 5);
-        gbcSell.fill = GridBagConstraints.HORIZONTAL;
-
-        // Form bán tài sản
         JPanel sellFormPanel = new JPanel(new GridBagLayout());
         sellFormPanel.setBackground(PANEL_BG);
-        GridBagConstraints gbcForm = new GridBagConstraints();
-        gbcForm.insets = new Insets(5, 5, 5, 5);
-        gbcForm.fill = GridBagConstraints.HORIZONTAL;
-
-        // Mã tài sản (combo box)
+        GridBagConstraints gbcSellForm = new GridBagConstraints();
+        gbcSellForm.insets = new Insets(8, 8, 8, 8);
+        gbcSellForm.fill = GridBagConstraints.HORIZONTAL;
+        gbcSellForm.anchor = GridBagConstraints.WEST;
+        int sellRow = 0;
         JLabel lblAssetId = new JLabel("Mã tài sản:");
-        lblAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JComboBox<String> cmbAssetId = new JComboBox<>();
-        cmbAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        cmbAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         loadAssetIds(cmbAssetId);
-        gbcForm.gridx = 0; gbcForm.gridy = 0;
-        sellFormPanel.add(lblAssetId, gbcForm);
-        gbcForm.gridx = 1;
-        sellFormPanel.add(cmbAssetId, gbcForm);
-
-        // Số tiền
+        gbcSellForm.gridx = 0; gbcSellForm.gridy = sellRow; sellFormPanel.add(lblAssetId, gbcSellForm);
+        gbcSellForm.gridx = 1; sellFormPanel.add(cmbAssetId, gbcSellForm);
+        sellRow++;
         JLabel lblAmount = new JLabel("Số tiền:");
-        lblAmount.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        JTextField txtAmount = new JTextField(20);
-        txtAmount.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        gbcForm.gridx = 0; gbcForm.gridy = 1;
-        sellFormPanel.add(lblAmount, gbcForm);
-        gbcForm.gridx = 1;
-        sellFormPanel.add(txtAmount, gbcForm);
-
-        // Ngày giao dịch
+        lblAmount.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField txtAmount = new JTextField(15);
+        txtAmount.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbcSellForm.gridx = 0; gbcSellForm.gridy = sellRow; sellFormPanel.add(lblAmount, gbcSellForm);
+        gbcSellForm.gridx = 1; sellFormPanel.add(txtAmount, gbcSellForm);
+        sellRow++;
         JLabel lblDate = new JLabel("Ngày giao dịch:");
-        lblDate.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblDate.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JDateChooser dateChooser = new JDateChooser();
-        dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        dateChooser.setPreferredSize(new Dimension(200, 30));
-        gbcForm.gridx = 0; gbcForm.gridy = 2;
-        sellFormPanel.add(lblDate, gbcForm);
-        gbcForm.gridx = 1;
-        sellFormPanel.add(dateChooser, gbcForm);
-
-        // Nút thêm giao dịch bán
+        dateChooser.setDateFormatString("yyyy-MM-dd");
+        dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbcSellForm.gridx = 0; gbcSellForm.gridy = sellRow; sellFormPanel.add(lblDate, gbcSellForm);
+        gbcSellForm.gridx = 1; sellFormPanel.add(dateChooser, gbcSellForm);
+        sellRow++;
         JButton btnAddSell = new JButton("Thêm giao dịch bán");
-        btnAddSell.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnAddSell.setBackground(new Color(0x2E2E5D));
+        btnAddSell.setBackground(new Color(0x008BCF));
         btnAddSell.setForeground(Color.WHITE);
+        btnAddSell.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnAddSell.setFocusPainted(false);
         btnAddSell.setBorderPainted(false);
         btnAddSell.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        gbcForm.gridx = 0; gbcForm.gridy = 3;
-        gbcForm.gridwidth = 2;
-        sellFormPanel.add(btnAddSell, gbcForm);
+        gbcSellForm.gridx = 0; gbcSellForm.gridy = sellRow; gbcSellForm.gridwidth = 2;
+        sellFormPanel.add(btnAddSell, gbcSellForm);
+        sellPanel.add(sellFormPanel, BorderLayout.NORTH);
 
-        // Bảng lịch sử bán
-        String[] sellCols = {"Mã tài sản", "Số tiền", "Ngày giao dịch"};
-        DefaultTableModel sellModel = new DefaultTableModel(sellCols, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable sellTable = new JTable(sellModel);
-        sellTable.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        sellTable.setRowHeight(32);
-        sellTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
-        sellTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        JScrollPane sellScroll = new JScrollPane(sellTable);
-        sellScroll.setPreferredSize(new Dimension(750, 220));
-
-        // Thêm form và bảng vào panel bán
-        gbcSell.gridx = 0; gbcSell.gridy = 0;
-        sellPanel.add(sellFormPanel, gbcSell);
-        gbcSell.gridy = 1;
-        sellPanel.add(sellScroll, gbcSell);
-
-        // Xử lý sự kiện thêm giao dịch bán
         btnAddSell.addActionListener(e -> {
             try {
                 String assetId = (String)cmbAssetId.getSelectedItem();
@@ -232,6 +200,10 @@ public class InvestStoragePanel extends JPanel {
                     return;
                 }
                 BigDecimal amount = new BigDecimal(amountStr);
+                if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                    JOptionPane.showMessageDialog(this, "Số tiền phải lớn hơn 0");
+                    return;
+                }
                 if (dateChooser.getDate() == null) {
                     JOptionPane.showMessageDialog(this, "Vui lòng chọn ngày giao dịch");
                     return;
@@ -241,14 +213,13 @@ public class InvestStoragePanel extends JPanel {
                 // Thêm giao dịch bán
                 transactionService.addSellTransaction(userId, assetId, amount, transDate);
 
-                // Refresh bảng
-                loadSellTransactions(sellModel);
-                loadInvestStorageData(investModel);
-
                 // Clear form
                 cmbAssetId.setSelectedItem(null);
                 txtAmount.setText("");
                 dateChooser.setDate(null);
+
+                // Sau khi thêm giao dịch, reload bảng danh mục đầu tư
+                loadInvestStorageData(investModel);
 
                 JOptionPane.showMessageDialog(this, "Thêm giao dịch bán thành công!");
             } catch (Exception ex) {
@@ -259,88 +230,71 @@ public class InvestStoragePanel extends JPanel {
         tabbedPane.addTab("Bán tài sản", sellPanel);
 
         // Tab 4: Mua tài sản
-        JPanel buyPanel = new JPanel(new GridBagLayout());
+        JPanel buyPanel = new JPanel(new BorderLayout());
         buyPanel.setBackground(PANEL_BG);
-        GridBagConstraints gbcBuy = new GridBagConstraints();
-        gbcBuy.insets = new Insets(5, 5, 5, 5);
-        gbcBuy.fill = GridBagConstraints.HORIZONTAL;
-
-        // Form mua tài sản
         JPanel buyFormPanel = new JPanel(new GridBagLayout());
         buyFormPanel.setBackground(PANEL_BG);
         GridBagConstraints gbcBuyForm = new GridBagConstraints();
-        gbcBuyForm.insets = new Insets(5, 5, 5, 5);
+        gbcBuyForm.insets = new Insets(8, 8, 8, 8);
         gbcBuyForm.fill = GridBagConstraints.HORIZONTAL;
-
-        // Mã tài sản (combo box)
+        gbcBuyForm.anchor = GridBagConstraints.WEST;
+        int buyRow = 0;
         JLabel lblBuyAssetId = new JLabel("Mã tài sản:");
-        lblBuyAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblBuyAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JComboBox<String> cmbBuyAssetId = new JComboBox<>();
-        cmbBuyAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        cmbBuyAssetId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         loadAssetIds(cmbBuyAssetId);
-        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = 0;
-        buyFormPanel.add(lblBuyAssetId, gbcBuyForm);
-        gbcBuyForm.gridx = 1;
-        buyFormPanel.add(cmbBuyAssetId, gbcBuyForm);
-
-        // Nguồn tiền
+        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = buyRow; buyFormPanel.add(lblBuyAssetId, gbcBuyForm);
+        gbcBuyForm.gridx = 1; buyFormPanel.add(cmbBuyAssetId, gbcBuyForm);
+        buyRow++;
+        JLabel lblBuyAmount = new JLabel("Số tiền:");
+        lblBuyAmount.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JTextField txtBuyAmount = new JTextField(15);
+        txtBuyAmount.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = buyRow; buyFormPanel.add(lblBuyAmount, gbcBuyForm);
+        gbcBuyForm.gridx = 1; buyFormPanel.add(txtBuyAmount, gbcBuyForm);
+        buyRow++;
         JLabel lblSource = new JLabel("Nguồn tiền:");
-        lblSource.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblSource.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JComboBox<String> cmbSource = new JComboBox<>(new String[]{"Lương", "Phụ cấp"});
-        cmbSource.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = 1;
-        buyFormPanel.add(lblSource, gbcBuyForm);
-        gbcBuyForm.gridx = 1;
-        buyFormPanel.add(cmbSource, gbcBuyForm);
-
-        // Ngày giao dịch
+        cmbSource.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = buyRow; buyFormPanel.add(lblSource, gbcBuyForm);
+        gbcBuyForm.gridx = 1; buyFormPanel.add(cmbSource, gbcBuyForm);
+        buyRow++;
         JLabel lblBuyDate = new JLabel("Ngày giao dịch:");
-        lblBuyDate.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblBuyDate.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JDateChooser buyDateChooser = new JDateChooser();
-        buyDateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        buyDateChooser.setPreferredSize(new Dimension(200, 30));
-        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = 2;
-        buyFormPanel.add(lblBuyDate, gbcBuyForm);
-        gbcBuyForm.gridx = 1;
-        buyFormPanel.add(buyDateChooser, gbcBuyForm);
-
-        // Nút thêm giao dịch mua
+        buyDateChooser.setDateFormatString("yyyy-MM-dd");
+        buyDateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = buyRow; buyFormPanel.add(lblBuyDate, gbcBuyForm);
+        gbcBuyForm.gridx = 1; buyFormPanel.add(buyDateChooser, gbcBuyForm);
+        buyRow++;
         JButton btnAddBuy = new JButton("Thêm giao dịch mua");
-        btnAddBuy.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnAddBuy.setBackground(new Color(0x2E2E5D));
+        btnAddBuy.setBackground(new Color(0x008BCF));
         btnAddBuy.setForeground(Color.WHITE);
+        btnAddBuy.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnAddBuy.setFocusPainted(false);
         btnAddBuy.setBorderPainted(false);
         btnAddBuy.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = 3;
-        gbcBuyForm.gridwidth = 2;
+        gbcBuyForm.gridx = 0; gbcBuyForm.gridy = buyRow; gbcBuyForm.gridwidth = 2;
         buyFormPanel.add(btnAddBuy, gbcBuyForm);
+        buyPanel.add(buyFormPanel, BorderLayout.NORTH);
 
-        // Bảng lịch sử mua
-        String[] buyCols = {"Mã tài sản", "Nguồn tiền", "Ngày giao dịch", "Tháng thu nhập"};
-        DefaultTableModel buyModel = new DefaultTableModel(buyCols, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable buyTable = new JTable(buyModel);
-        buyTable.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        buyTable.setRowHeight(32);
-        buyTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
-        buyTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        JScrollPane buyScroll = new JScrollPane(buyTable);
-        buyScroll.setPreferredSize(new Dimension(750, 220));
-
-        // Thêm form và bảng vào panel mua
-        gbcBuy.gridx = 0; gbcBuy.gridy = 0;
-        buyPanel.add(buyFormPanel, gbcBuy);
-        gbcBuy.gridy = 1;
-        buyPanel.add(buyScroll, gbcBuy);
-
-        // Xử lý sự kiện thêm giao dịch mua
         btnAddBuy.addActionListener(e -> {
             try {
                 String assetId = (String)cmbBuyAssetId.getSelectedItem();
                 if (assetId == null || assetId.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Vui lòng chọn mã tài sản");
+                    return;
+                }
+                String amountStr = txtBuyAmount.getText().trim();
+                if (amountStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Vui lòng nhập số tiền");
+                    return;
+                }
+                BigDecimal amount = new BigDecimal(amountStr);
+                if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                    JOptionPane.showMessageDialog(this, "Số tiền phải lớn hơn 0");
                     return;
                 }
                 String source = (String)cmbSource.getSelectedItem();
@@ -353,48 +307,48 @@ public class InvestStoragePanel extends JPanel {
                     return;
                 }
                 java.util.Date transDate = buyDateChooser.getDate();
-                
-                // Xác định tháng thu nhập dựa trên ngày giao dịch
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(transDate);
                 int month = cal.get(Calendar.MONTH) + 1;
-
-                // Lấy giá hiện tại của tài sản
-                String sql = "SELECT cur_price FROM INVEST_STORAGE_DETAIL WHERE InStID = ?";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setString(1, assetId);
-                ResultSet rs = stmt.executeQuery();
-                if (!rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy thông tin tài sản");
+                String monthStr = String.valueOf(month);
+                int incomeId = -1;
+                // Kiểm tra số dư nguồn tiền và trừ tiền nếu đủ
+                if (source.equals("Lương") || source.equals("Phụ cấp")) {
+                    String sql = "SELECT IncomeID, remain_income FROM INCOME WHERE UserID = ? AND ic_month = ? AND income_name = ?";
+                    PreparedStatement stmt = connection.prepareStatement(sql);
+                    stmt.setInt(1, userId);
+                    stmt.setString(2, monthStr);
+                    stmt.setString(3, source);
+                    ResultSet rs = stmt.executeQuery();
+                    if (!rs.next()) {
+                        JOptionPane.showMessageDialog(this, "Không tìm thấy thu nhập " + source + " trong tháng " + month);
+                        return;
+                    }
+                    incomeId = rs.getInt("IncomeID");
+                    BigDecimal remain = rs.getBigDecimal("remain_income");
+                    if (remain.compareTo(amount) < 0) {
+                        JOptionPane.showMessageDialog(this, "Số dư " + source + " không đủ");
+                        return;
+                    }
+                    // Trừ tiền
+                    String sqlUpdate = "UPDATE INCOME SET remain_income = remain_income - ? WHERE IncomeID = ?";
+                    PreparedStatement stmtUpdate = connection.prepareStatement(sqlUpdate);
+                    stmtUpdate.setBigDecimal(1, amount);
+                    stmtUpdate.setInt(2, incomeId);
+                    stmtUpdate.executeUpdate();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Chỉ hỗ trợ nguồn tiền Lương hoặc Phụ cấp");
                     return;
                 }
-                BigDecimal price = rs.getBigDecimal("cur_price");
-
-                // Lấy IncomeID dựa trên nguồn tiền và tháng
-                sql = "SELECT IncomeID FROM INCOME WHERE UserID = ? AND ic_month = ? AND ic_name = ?";
-                stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setInt(2, month);
-                stmt.setString(3, source);
-                rs = stmt.executeQuery();
-                if (!rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy thu nhập " + source + " trong tháng " + month);
-                    return;
-                }
-                int incomeId = rs.getInt("IncomeID");
-
                 // Thêm giao dịch mua
-                transactionService.addBuyTransaction(userId, assetId, price, transDate, incomeId);
-
-                // Refresh bảng
-                loadBuyTransactions(buyModel);
-                loadInvestStorageData(investModel);
-
+                transactionService.addBuyTransaction(userId, assetId, amount, transDate, incomeId);
                 // Clear form
                 cmbBuyAssetId.setSelectedItem(null);
+                txtBuyAmount.setText("");
                 cmbSource.setSelectedItem(null);
                 buyDateChooser.setDate(null);
-
+                // Sau khi thêm giao dịch, reload bảng danh mục đầu tư
+                loadInvestStorageData(investModel);
                 JOptionPane.showMessageDialog(this, "Thêm giao dịch mua thành công!");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi khi thêm giao dịch mua: " + ex.getMessage());
@@ -403,14 +357,21 @@ public class InvestStoragePanel extends JPanel {
 
         tabbedPane.addTab("Mua tài sản", buyPanel);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        add(tabbedPane, gbc);
+        add(tabbedPane, BorderLayout.CENTER);
+
+        // Bổ sung logic cập nhật giá
+        refreshButton.addActionListener(e -> {
+            try {
+                // Gọi service cập nhật giá
+                PriceUpdateService priceUpdateService = new PriceUpdateService(new com.personal.finance.testproject.dao.impl.InvestStorageDetailDAOImpl(connection));
+                priceUpdateService.updatePrices();
+                // Sau khi cập nhật xong, load lại bảng
+                loadInvestStorageDetailData(detailModel);
+                JOptionPane.showMessageDialog(this, "Đã cập nhật giá thành công!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật giá: " + ex.getMessage());
+            }
+        });
     }
 
     private void loadInvestStorageData(DefaultTableModel model) {
@@ -547,9 +508,16 @@ public class InvestStoragePanel extends JPanel {
             for (Transaction trans : transactions) {
                 Vector<Object> row = new Vector<>();
                 row.add(trans.getInStId());
-                row.add(trans.getTransAmount());
+                // Lấy nguồn tiền
+                String source = "";
+                String sqlSource = "SELECT ic_month FROM INCOME WHERE IncomeID = ?";
+                PreparedStatement stmtSource = connection.prepareStatement(sqlSource);
+                stmtSource.setInt(1, trans.getIncomeId());
+                ResultSet rsSource = stmtSource.executeQuery();
+                if (rsSource.next()) source = rsSource.getString("ic_month");
+                row.add(source);
+                row.add(trans.getTransAmount()); // Số tiền mua
                 row.add(trans.getTransDate());
-                
                 // Lấy tháng thu nhập
                 String sql = "SELECT ic_month FROM INCOME WHERE IncomeID = ?";
                 PreparedStatement stmt = connection.prepareStatement(sql);
@@ -558,7 +526,6 @@ public class InvestStoragePanel extends JPanel {
                 if (rs.next()) {
                     row.add(rs.getInt("ic_month"));
                 }
-                
                 model.addRow(row);
             }
         } catch (Exception e) {

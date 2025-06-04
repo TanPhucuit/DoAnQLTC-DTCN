@@ -37,7 +37,7 @@ public class SidebarPanel extends JPanel {
     public SidebarPanel() {
         System.out.println("DEBUG ICON PATH: " + getClass().getResource("/icons/dashboard.png"));
         setLayout(new GridLayout(0, 1, 0, 10));
-        setBackground(new Color(245, 247, 250));
+        setBackground(new Color(0x00AEEF));
         setPreferredSize(new Dimension(200, 0));
 
         addMenuButton("dashboard", "Dashboard", createImageIcon("icons/dashboard.png"));
@@ -54,29 +54,41 @@ public class SidebarPanel extends JPanel {
     private void addMenuButton(String key, String text, ImageIcon icon) {
         JButton button = new JButton(text);
         button.setFocusPainted(false);
-        button.setBackground(new Color(245, 247, 250));
-        button.setForeground(new Color(44, 62, 80));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        button.setBackground(new Color(0x00AEEF));
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setIconTextGap(ICON_GAP);
         button.setBorder(BorderFactory.createEmptyBorder(BUTTON_PADDING, 20, BUTTON_PADDING, BUTTON_PADDING));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+        button.setOpaque(true);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(true);
+        button.setFocusable(false);
+        button.setPreferredSize(new Dimension(180, 40));
+        button.setMaximumSize(new Dimension(180, 40));
+        button.setMinimumSize(new Dimension(180, 40));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(0, 0, 0, 0),
+            BorderFactory.createLineBorder(new Color(0x00AEEF), 0, true)
+        ));
+        button.putClientProperty("JButton.buttonType", "roundRect");
         if (icon != null) {
             button.setIcon(icon);
         }
-
         button.addActionListener(e -> {
             if (sidebarListener != null) sidebarListener.onMenuSelected(key);
         });
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(220, 230, 250));
+                button.setBackground(new Color(0x008BCF));
             }
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(245, 247, 250));
+                if (!button.getBackground().equals(new Color(0xFFC107))) {
+                    button.setBackground(new Color(0x00AEEF));
+                }
             }
         });
         add(button);
@@ -90,9 +102,9 @@ public class SidebarPanel extends JPanel {
     public void setActiveMenu(String key) {
         for (Map.Entry<String, JButton> entry : menuButtons.entrySet()) {
             if (entry.getKey().equals(key)) {
-                entry.getValue().setBackground(new Color(200, 220, 255));
+                entry.getValue().setBackground(new Color(0x008BCF));
             } else {
-                entry.getValue().setBackground(new Color(245, 247, 250));
+                entry.getValue().setBackground(new Color(0x00AEEF));
             }
         }
     }

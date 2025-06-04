@@ -32,14 +32,14 @@ public class FinancialStatusPanel extends JPanel {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        setBackground(MAIN_BG);
+        setBackground(BTN_BG);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 20));
-        buttonPanel.setBackground(MAIN_BG);
+        buttonPanel.setBackground(BTN_BG);
         JButton btnSpend = new JButton("Trạng thái chi tiêu");
         JButton btnInvest = new JButton("Trạng thái đầu tư");
         JButton btnOverall = new JButton("Trạng thái tài chính");
         for (JButton btn : new JButton[]{btnSpend, btnInvest, btnOverall}) {
-            btn.setBackground(BTN_BG);
+            btn.setBackground(new Color(0x008BCF));
             btn.setForeground(BTN_TEXT);
             btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
             btn.setFocusPainted(false);

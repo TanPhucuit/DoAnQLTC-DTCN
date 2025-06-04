@@ -11,16 +11,21 @@ import com.personal.finance.testproject.model.*;
 import com.personal.finance.testproject.dao.impl.*;
 import com.personal.finance.testproject.util.DatabaseConnection;
 import com.personal.finance.testproject.service.PriceUpdateService;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class ManageSearchFrame extends JFrame {
-    private JTabbedPane tabbedPane;
     private int userId;
     private Connection connection;
-    private static final Color MAIN_BG = new Color(0x000000); // Đen tuyệt đối
+    private static final Color MAIN_BG = new Color(0xFFFFFF ); // Đen tuyệt đối
     private static final Color PANEL_BG = new Color(0xE0E0E0); // Xám nhạt
     private static final Color TABLE_BG = Color.WHITE;
     private static final Color TEXT_DARK = Color.BLACK;
     private static final Color ACCENT = new Color(0x2E2E5D);
+    private JButton btnBack;
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
+    private JPanel cardPanel;
 
     public ManageSearchFrame(int userId) {
         this.userId = userId;
@@ -36,593 +41,355 @@ public class ManageSearchFrame extends JFrame {
     }
 
     private void initializeUI() {
-        // Giới hạn chiều cao tab
-        UIManager.put("TabbedPane.tabHeight", 36);
         setTitle("Quản lý & Tra cứu");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1100, 700);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(MAIN_BG);
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(PANEL_BG);
-        tabbedPane.setForeground(TEXT_DARK);
-        
-        // Add tabs
-        tabbedPane.addTab("Thu nhập", createIncomePanel());
-        tabbedPane.addTab("Khoản vay", createLoanPanel());
-        tabbedPane.addTab("Tiết kiệm", createSavingPanel());
-        tabbedPane.addTab("Đầu tư & Tích trữ", createInvestPanel());
-        tabbedPane.addTab("Giao dịch", createTransactionPanel());
-        tabbedPane.addTab("Mục đích", createPurposePanel());
+        getContentPane().setBackground(Color.WHITE);
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        cardPanel.setBackground(Color.WHITE);
+        mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(Color.WHITE);
+        add(mainPanel);
 
-        add(tabbedPane);
+        String[] titles = {"Thu nhập", "Khoản vay", "Tiết kiệm", "Đầu tư & Tích trữ", "Giao dịch", "Loại giao dịch", "Mục đích", "Thông tin người dùng"};
+        String[] iconFiles = {"income.png", "loan.png", "save.png", "invest.png", "transaction.png", "transaction type.png", "purpose.png", "user_information.png"};
+        String[] panelKeys = new String[]{"income", "loan", "saving", "invest", "transaction", "transactionType", "purpose", "userInfo"};
+        JPanel[] functionPanels = new JPanel[]{
+            createIncomePanel(),
+            createLoanPanel(),
+            createSavingPanel(),
+            createInvestPanel(),
+            createTransactionPanel(),
+            createTransactionTypePanel(),
+            new PurposePanel(userId, this),
+            createUserInfoPanel()
+        };
+
+        btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.setVisible(false);
+        btnBack.addActionListener(e -> {
+            cardLayout.show(cardPanel, "dashboard");
+            btnBack.setVisible(false);
+            cardPanel.revalidate();
+            cardPanel.repaint();
+        });
+        GridBagConstraints gbcBack = new GridBagConstraints();
+        gbcBack.gridx = 0; gbcBack.gridy = 0; gbcBack.anchor = GridBagConstraints.WEST; gbcBack.insets = new Insets(10, 10, 0, 0);
+        mainPanel.add(btnBack, gbcBack);
+
+        JPanel gridPanel = new JPanel(new GridBagLayout());
+        gridPanel.setBackground(MAIN_BG);
+        GridBagConstraints gridGbc = new GridBagConstraints();
+        gridGbc.insets = new Insets(32, 32, 32, 32);
+        int cols = 4;
+        for (int i = 0; i < titles.length; i++) {
+            JPanel box = new JPanel();
+            box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+            box.setBackground(Color.WHITE);
+            box.setPreferredSize(new Dimension(120, 120));
+            box.setMaximumSize(new Dimension(120, 120));
+            box.setMinimumSize(new Dimension(100, 100));
+            box.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0xE0E0E0), 2, true),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)));
+            box.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            // Icon
+            JLabel iconLabel = new JLabel();
+            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            ImageIcon icon = new ImageIcon(getClass().getResource("/icon2/" + iconFiles[i]));
+            Image img = icon.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH);
+            iconLabel.setIcon(new ImageIcon(img));
+            // Text
+            JLabel textLabel = new JLabel(titles[i]);
+            textLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            textLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            textLabel.setForeground(TEXT_DARK);
+            textLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+            box.add(Box.createVerticalGlue());
+            box.add(iconLabel);
+            box.add(textLabel);
+            box.add(Box.createVerticalGlue());
+            int idx = i;
+            box.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    cardLayout.show(cardPanel, panelKeys[idx]);
+                    btnBack.setVisible(true);
+                    cardPanel.revalidate();
+                    cardPanel.repaint();
+                }
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    box.setBackground(new Color(0xE0F7FA));
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    box.setBackground(Color.WHITE);
+                }
+            });
+            gridGbc.gridx = i % cols;
+            gridGbc.gridy = i / cols;
+            gridPanel.add(box, gridGbc);
+        }
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 1.0; gbc.weighty = 1.0; gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(gridPanel, gbc);
+
+        cardPanel.add(mainPanel, "dashboard");
+        for (int i = 0; i < functionPanels.length; i++) {
+            functionPanels[i].setBackground(Color.WHITE);
+            cardPanel.add(functionPanels[i], panelKeys[i]);
+        }
+        setContentPane(cardPanel);
+        cardLayout.show(cardPanel, "dashboard");
+        cardPanel.revalidate();
+        cardPanel.repaint();
     }
 
     private JPanel createIncomePanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(PANEL_BG);
-        String[] columnNames = {"ID", "Tháng", "Tên khoản thu", "Số tiền", "Số dư còn lại"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(model);
-        table.setBackground(TABLE_BG);
-        table.setForeground(TEXT_DARK);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        table.getTableHeader().setBackground(PANEL_BG);
-        table.getTableHeader().setForeground(ACCENT);
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBackground(PANEL_BG);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        loadIncomeData(model);
-        // Form thêm mới
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        formPanel.setBackground(PANEL_BG);
-        JComboBox<String> monthCombo = new JComboBox<>(new String[]{"1","2","3","4","5","6","7","8","9","10","11","12"});
-        JTextField nameField = new JTextField(12);
-        JTextField amountField = new JTextField(10);
-        JButton btnAdd = new JButton("Thêm khoản thu");
-        btnAdd.setBackground(ACCENT);
-        btnAdd.setForeground(Color.WHITE);
-        formPanel.add(new JLabel("Tháng:"));
-        formPanel.add(monthCombo);
-        formPanel.add(new JLabel("Tên khoản thu:"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Số tiền:"));
-        formPanel.add(amountField);
-        formPanel.add(btnAdd);
-        panel.add(formPanel, BorderLayout.NORTH);
-        btnAdd.addActionListener(e -> {
-            try {
-                String sql = "INSERT INTO INCOME (UserID, ic_month, income_name, income_amount) VALUES (?, ?, ?, ?)";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setString(2, (String) monthCombo.getSelectedItem());
-                stmt.setString(3, nameField.getText());
-                stmt.setBigDecimal(4, new java.math.BigDecimal(amountField.getText()));
-                stmt.executeUpdate();
-                loadIncomeData(model);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thêm khoản thu: " + ex.getMessage());
-            }
-        });
-        return panel;
+        return new IncomeManagementPanel(userId, this);
     }
 
     private JPanel createLoanPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        String[] columnNames = {"ID", "Tên mục đích", "Số tiền vay", "Lãi suất", "Số kỳ", "Đã trả", "Còn lại", "Ngày giải ngân"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(model);
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        loadLoanData(model);
-        // Form thêm mới
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField purposeField = new JTextField(12);
-        JTextField amountField = new JTextField(10);
-        JTextField interestField = new JTextField(5);
-        JTextField numTermField = new JTextField(5);
-        JTextField disburDateField = new JTextField(10);
-        JButton btnAdd = new JButton("Thêm khoản vay");
-        formPanel.add(new JLabel("Tên mục đích:"));
-        formPanel.add(purposeField);
-        formPanel.add(new JLabel("Số tiền vay:"));
-        formPanel.add(amountField);
-        formPanel.add(new JLabel("Lãi suất:"));
-        formPanel.add(interestField);
-        formPanel.add(new JLabel("Số kỳ:"));
-        formPanel.add(numTermField);
-        formPanel.add(new JLabel("Ngày giải ngân (yyyy-MM-dd):"));
-        formPanel.add(disburDateField);
-        formPanel.add(btnAdd);
-        panel.add(formPanel, BorderLayout.NORTH);
-        btnAdd.addActionListener(e -> {
-            try {
-                // Thêm mục đích nếu chưa có
-                String sqlPurpose = "INSERT IGNORE INTO PURPOSE (UserID, purpose_name) VALUES (?, ?)";
-                PreparedStatement stmtPurpose = connection.prepareStatement(sqlPurpose);
-                stmtPurpose.setInt(1, userId);
-                stmtPurpose.setString(2, purposeField.getText());
-                stmtPurpose.executeUpdate();
-                // Lấy PurposeID
-                String sqlGetPurpose = "SELECT PurposeID FROM PURPOSE WHERE UserID = ? AND purpose_name = ?";
-                PreparedStatement stmtGetPurpose = connection.prepareStatement(sqlGetPurpose);
-                stmtGetPurpose.setInt(1, userId);
-                stmtGetPurpose.setString(2, purposeField.getText());
-                ResultSet rs = stmtGetPurpose.executeQuery();
-                int purposeId = 0;
-                if (rs.next()) purposeId = rs.getInt(1);
-                // Thêm khoản vay
-                String sql = "INSERT INTO LOAN (UserID, PurposeID, loan_amount, interest, num_term, disbur_date) VALUES (?, ?, ?, ?, ?, ?)";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setInt(2, purposeId);
-                stmt.setBigDecimal(3, new java.math.BigDecimal(amountField.getText()));
-                stmt.setBigDecimal(4, new java.math.BigDecimal(interestField.getText()));
-                stmt.setInt(5, Integer.parseInt(numTermField.getText()));
-                stmt.setDate(6, java.sql.Date.valueOf(disburDateField.getText()));
-                stmt.executeUpdate();
-                loadLoanData(model);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thêm khoản vay: " + ex.getMessage());
-            }
-        });
-        return panel;
+        return new LoanManagementPanel(userId, this);
     }
 
     private JPanel createSavingPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        String[] columnNames = {"ID", "Tên tiết kiệm", "Ngân hàng", "Số tiền gửi", "Còn lại", "Ngày cập nhật"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(model);
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        loadSavingData(model);
-        // Form thêm mới
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField nameField = new JTextField(12);
-        JTextField bankField = new JTextField(10);
-        JTextField amountField = new JTextField(10);
-        JButton btnAdd = new JButton("Thêm tiết kiệm");
-        formPanel.add(new JLabel("Tên tiết kiệm:"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Ngân hàng:"));
-        formPanel.add(bankField);
-        formPanel.add(new JLabel("Số tiền gửi:"));
-        formPanel.add(amountField);
-        formPanel.add(btnAdd);
-        panel.add(formPanel, BorderLayout.NORTH);
-        btnAdd.addActionListener(e -> {
-            try {
-                // Lấy BankAccountNumber
-                String sqlGetBank = "SELECT BankAccountNumber FROM BANK_ACCOUNT WHERE UserID = ? AND BankName = ? LIMIT 1";
-                PreparedStatement stmtGetBank = connection.prepareStatement(sqlGetBank);
-                stmtGetBank.setInt(1, userId);
-                stmtGetBank.setString(2, bankField.getText());
-                ResultSet rs = stmtGetBank.executeQuery();
-                String bankAccount = null;
-                if (rs.next()) bankAccount = rs.getString(1);
-                if (bankAccount == null) throw new Exception("Không tìm thấy tài khoản ngân hàng");
-                // Thêm tiết kiệm
-                String sql = "INSERT INTO SAVING (UserID, save_name, BankAccountNumber, save_amount, remain_save, up_date, PurposeID) VALUES (?, ?, ?, ?, ?, CURDATE(), 1)";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setString(2, nameField.getText());
-                stmt.setString(3, bankAccount);
-                stmt.setBigDecimal(4, new java.math.BigDecimal(amountField.getText()));
-                stmt.setBigDecimal(5, new java.math.BigDecimal(amountField.getText()));
-                stmt.executeUpdate();
-                loadSavingData(model);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thêm tiết kiệm: " + ex.getMessage());
-            }
-        });
-        return panel;
+        return new SavingManagementPanel(userId, this);
     }
 
     private JPanel createInvestPanel() {
-        JPanel panel = new JPanel(new GridLayout(2,1,0,16));
-        panel.setBackground(PANEL_BG);
-        
-        // Add refresh button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(PANEL_BG);
-        JButton refreshButton = new JButton("Cập nhật giá");
-        refreshButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        refreshButton.setBackground(ACCENT);
-        refreshButton.setForeground(Color.WHITE);
-        refreshButton.setFocusPainted(false);
-        refreshButton.setBorderPainted(false);
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        buttonPanel.add(refreshButton);
-        
-        // Create a container panel for the button and tables
-        JPanel containerPanel = new JPanel(new BorderLayout());
-        containerPanel.setBackground(PANEL_BG);
-        containerPanel.add(buttonPanel, BorderLayout.NORTH);
-        
-        // Bảng 1: Danh mục đầu tư của tôi
-        String[] myInvestCols = {"ID", "Tên tài sản", "Số lượng", "Giá mua", "Giá hiện tại", "Lợi nhuận ước tính", "Ngày cập nhật"};
-        DefaultTableModel myInvestModel = new DefaultTableModel(myInvestCols, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable myInvestTable = new JTable(myInvestModel);
-        myInvestTable.setRowHeight(32);
-        myInvestTable.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        myInvestTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        myInvestTable.getTableHeader().setBackground(PANEL_BG);
-        myInvestTable.getTableHeader().setForeground(ACCENT);
-        JScrollPane myInvestScroll = new JScrollPane(myInvestTable);
-        myInvestScroll.setBackground(PANEL_BG);
-        loadInvestData(myInvestModel);
-        
-        // Bảng 2: Thông tin chi tiết tài sản
-        String[] detailCols = {"Mã tài sản", "Cấp rủi ro", "Giá hiện tại", "Z-Score", "Độ lệch chuẩn", "Đơn vị"};
-        DefaultTableModel detailModel = new DefaultTableModel(detailCols, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable detailTable = new JTable(detailModel);
-        detailTable.setRowHeight(32);
-        detailTable.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        detailTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        detailTable.getTableHeader().setBackground(PANEL_BG);
-        detailTable.getTableHeader().setForeground(ACCENT);
-        JScrollPane detailScroll = new JScrollPane(detailTable);
-        detailScroll.setBackground(PANEL_BG);
-        loadInvestStorageDetailData(detailModel);
-        
-        // Add tables to container panel
-        JPanel tablesPanel = new JPanel(new GridLayout(2,1,0,16));
-        tablesPanel.setBackground(PANEL_BG);
-        tablesPanel.add(myInvestScroll);
-        tablesPanel.add(detailScroll);
-        containerPanel.add(tablesPanel, BorderLayout.CENTER);
-        
-        // Add container panel to main panel
-        panel.add(containerPanel);
-        
-        // Add refresh button action
-        refreshButton.addActionListener(e -> {
-            try {
-                // Create and use PriceUpdateService
-                InvestStorageDetailDAO detailDAO = new InvestStorageDetailDAOImpl(connection);
-                PriceUpdateService priceService = new PriceUpdateService(detailDAO);
-                priceService.updatePrices();
-                
-                // Refresh tables
-                loadInvestData(myInvestModel);
-                loadInvestStorageDetailData(detailModel);
-                
-                JOptionPane.showMessageDialog(this, 
-                    "Cập nhật giá thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Lỗi khi cập nhật giá: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        
-        return panel;
-    }
-
-    private void loadIncomeData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT * FROM INCOME WHERE UserID = ? ORDER BY ic_month, IncomeID";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getInt("IncomeID"));
-                row.add(rs.getString("ic_month"));
-                row.add(rs.getString("income_name"));
-                row.add(rs.getBigDecimal("income_amount"));
-                row.add(rs.getBigDecimal("remain_income"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu: " + e.getMessage());
-        }
-    }
-
-    private void loadLoanData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT l.*, p.purpose_name FROM LOAN l JOIN PURPOSE p ON l.PurposeID = p.PurposeID AND l.UserID = p.UserID WHERE l.UserID = ? ORDER BY l.disbur_date DESC";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getInt("LoanID"));
-                row.add(rs.getString("purpose_name"));
-                row.add(rs.getBigDecimal("loan_amount"));
-                row.add(rs.getBigDecimal("interest"));
-                row.add(rs.getInt("num_term"));
-                row.add(rs.getInt("num_paid_term"));
-                row.add(rs.getBigDecimal("loan_remain"));
-                row.add(rs.getDate("disbur_date"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu khoản vay: " + e.getMessage());
-        }
-    }
-
-    private void loadSavingData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT * FROM SAVING WHERE UserID = ? ORDER BY up_date DESC";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getInt("SaveID"));
-                row.add(rs.getString("save_name"));
-                row.add(rs.getString("BankAccountNumber"));
-                row.add(rs.getBigDecimal("save_amount"));
-                row.add(rs.getBigDecimal("remain_save"));
-                row.add(rs.getDate("up_date"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu tiết kiệm: " + e.getMessage());
-        }
-    }
-
-    private void loadInvestData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT isr.InStID, isd.unit, isr.num_unit, isr.buy_price, isd.cur_price, isr.es_profit, isr.up_date FROM INVEST_STORAGE isr JOIN INVEST_STORAGE_DETAIL isd ON isr.InStID = isd.InStID WHERE isr.UserID = ?";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getString("InStID"));
-                row.add(rs.getString("unit"));
-                row.add(rs.getBigDecimal("num_unit"));
-                row.add(rs.getBigDecimal("buy_price"));
-                row.add(rs.getBigDecimal("cur_price"));
-                row.add(rs.getBigDecimal("es_profit"));
-                row.add(rs.getDate("up_date"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu đầu tư: " + e.getMessage());
-        }
-    }
-
-    private void loadInvestStorageDetailData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT * FROM INVEST_STORAGE_DETAIL";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getString("InStID"));
-                row.add(rs.getInt("riskLevel"));
-                row.add(rs.getBigDecimal("cur_price"));
-                row.add(rs.getBigDecimal("z_score"));
-                row.add(rs.getBigDecimal("standard_deviation"));
-                row.add(rs.getString("unit"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu chi tiết tài sản: " + e.getMessage());
-        }
-    }
-
-    private JPanel createPurposePanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(PANEL_BG);
-        String[] columnNames = {"ID", "Tên mục đích", "Mô tả", "Ngày tạo"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(model);
-        table.setBackground(TABLE_BG);
-        table.setForeground(TEXT_DARK);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        table.getTableHeader().setBackground(PANEL_BG);
-        table.getTableHeader().setForeground(ACCENT);
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBackground(PANEL_BG);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        loadPurposeData(model);
-
-        // Form thêm mới
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        formPanel.setBackground(PANEL_BG);
-        JTextField nameField = new JTextField(15);
-        JTextField descField = new JTextField(20);
-        JButton btnAdd = new JButton("Thêm mục đích");
-        btnAdd.setBackground(ACCENT);
-        btnAdd.setForeground(Color.WHITE);
-        formPanel.add(new JLabel("Tên mục đích:"));
-        formPanel.add(nameField);
-        formPanel.add(new JLabel("Mô tả:"));
-        formPanel.add(descField);
-        formPanel.add(btnAdd);
-        panel.add(formPanel, BorderLayout.NORTH);
-
-        btnAdd.addActionListener(e -> {
-            try {
-                String sql = "INSERT INTO PURPOSE (UserID, purpose_name, purpose_description, create_date) VALUES (?, ?, ?, CURRENT_DATE)";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setString(2, nameField.getText());
-                stmt.setString(3, descField.getText());
-                stmt.executeUpdate();
-                loadPurposeData(model);
-                nameField.setText("");
-                descField.setText("");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thêm mục đích: " + ex.getMessage());
-            }
-        });
-        return panel;
-    }
-
-    private void loadPurposeData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT * FROM PURPOSE WHERE UserID = ? ORDER BY create_date DESC";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getInt("PurposeID"));
-                row.add(rs.getString("purpose_name"));
-                row.add(rs.getString("purpose_description"));
-                row.add(rs.getDate("create_date"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu mục đích: " + e.getMessage());
-        }
+        return new InvestStoragePanel(userId, this);
     }
 
     private JPanel createTransactionPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
+        return new TransactionPanel(userId, this);
+    }
+
+    private JPanel createTransactionTypePanel() {
+        return new TransactionTypePanel(userId, this);
+    }
+
+    private JPanel createUserInfoPanel() {
+        // Panel cha căn giữa
+        JPanel outerPanel = new JPanel(new GridBagLayout());
+        outerPanel.setBackground(Color.WHITE);
+        GridBagConstraints gbcOuter = new GridBagConstraints();
+        gbcOuter.gridx = 0; gbcOuter.gridy = 0; gbcOuter.weightx = 1.0; gbcOuter.weighty = 1.0;
+        gbcOuter.anchor = GridBagConstraints.CENTER;
+        gbcOuter.fill = GridBagConstraints.BOTH;
+
+        // Panel nội dung chính
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
-        // Form thêm/tìm kiếm
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        formPanel.setBackground(new Color(0xE0E0E0));
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"Thu nhập", "Chi tiêu", "Chuyển khoản"});
-        JComboBox<String> purposeCombo = new JComboBox<>();
-        JTextField amountField = new JTextField(10);
-        JTextField dateField = new JTextField(10);
-        JTextField noteField = new JTextField(20);
-        JButton btnAdd = new JButton("Thêm giao dịch");
-        btnAdd.setBackground(ACCENT);
-        btnAdd.setForeground(Color.WHITE);
-        formPanel.add(new JLabel("Loại giao dịch:"));
-        formPanel.add(typeCombo);
-        formPanel.add(new JLabel("Mục đích:"));
-        formPanel.add(purposeCombo);
-        formPanel.add(new JLabel("Số tiền:"));
-        formPanel.add(amountField);
-        formPanel.add(new JLabel("Ngày (yyyy-MM-dd):"));
-        formPanel.add(dateField);
-        formPanel.add(new JLabel("Ghi chú:"));
-        formPanel.add(noteField);
-        formPanel.add(btnAdd);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(20, 0, 10, 0);
-        panel.add(formPanel, gbc);
-        // Bảng dữ liệu
-        String[] columnNames = {"ID", "Loại giao dịch", "Mục đích", "Số tiền", "Ngày giao dịch", "Ghi chú"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
-        };
-        JTable table = new JTable(model);
-        table.setBackground(TABLE_BG);
-        table.setForeground(TEXT_DARK);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
-        table.getTableHeader().setBackground(PANEL_BG);
-        table.getTableHeader().setForeground(ACCENT);
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(1000, 220));
-        gbc.gridy = 1;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        panel.add(scrollPane, gbc);
-        // Thêm padding dưới cùng nếu cần
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
-        // Load dữ liệu mục đích
-        loadPurposes(purposeCombo);
-        // Load dữ liệu giao dịch
-        loadTransactionData(model);
-        btnAdd.addActionListener(e -> {
-            try {
-                String typeId = "";
-                switch((String)typeCombo.getSelectedItem()) {
-                    case "Thu nhập": typeId = "INCOME"; break;
-                    case "Chi tiêu": typeId = "SP_Food"; break;
-                    case "Chuyển khoản": typeId = "TRANSFER"; break;
+        panel.setBorder(BorderFactory.createEmptyBorder(32, 48, 32, 48));
+
+        // Nút quay lại
+        JButton btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnBack.setMaximumSize(new Dimension(180, 44));
+        btnBack.addActionListener(e -> {
+            cardLayout.show(cardPanel, "dashboard");
+            btnBack.setVisible(false);
+            cardPanel.revalidate();
+            cardPanel.repaint();
+        });
+        panel.add(btnBack);
+        panel.add(Box.createVerticalStrut(18));
+
+        // Lấy dữ liệu user_information
+        final String[] fullName = {""};
+        final String[] country = {""};
+        final String[] city = {""};
+        final String[] phone = {""};
+        final java.sql.Date[] dob = {null};
+        try {
+            String sql = "SELECT * FROM USER_INFORMATION WHERE UserID = ?";
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                fullName[0] = rs.getString("full_name");
+                dob[0] = rs.getDate("date_of_birth");
+                country[0] = rs.getString("Country");
+                city[0] = rs.getString("City");
+                phone[0] = rs.getString("PhoneNumber");
+            }
+        } catch (SQLException e) {
+            JLabel err = new JLabel("Lỗi khi tải thông tin người dùng: " + e.getMessage());
+            err.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            err.setForeground(Color.RED);
+            panel.add(err);
+        }
+        // Tiêu đề
+        JLabel lblTitle = new JLabel("Thông tin người dùng");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitle.setForeground(new Color(0x2E2E5D));
+        panel.add(lblTitle);
+        panel.add(Box.createVerticalStrut(32));
+        // Thông tin
+        Font labelFont = new Font("Segoe UI", Font.BOLD, 22);
+        Font valueFont = new Font("Segoe UI", Font.PLAIN, 22);
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(Color.WHITE);
+        infoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Họ tên
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        row1.setBackground(Color.WHITE);
+        JLabel lblFullName = new JLabel("Họ tên:");
+        lblFullName.setFont(labelFont);
+        JLabel valFullName = new JLabel(fullName[0] != null ? fullName[0] : "");
+        valFullName.setFont(valueFont);
+        row1.add(lblFullName); row1.add(valFullName);
+        infoPanel.add(row1);
+        // Ngày sinh
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        row2.setBackground(Color.WHITE);
+        JLabel lblDob = new JLabel("Ngày sinh:");
+        lblDob.setFont(labelFont);
+        JLabel valDob = new JLabel(dob[0] != null ? dob[0].toString() : "");
+        valDob.setFont(valueFont);
+        row2.add(lblDob); row2.add(valDob);
+        infoPanel.add(row2);
+        // Quốc gia
+        JPanel row3 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        row3.setBackground(Color.WHITE);
+        JLabel lblCountry = new JLabel("Quốc gia:");
+        lblCountry.setFont(labelFont);
+        JLabel valCountry = new JLabel(country[0] != null ? country[0] : "");
+        valCountry.setFont(valueFont);
+        row3.add(lblCountry); row3.add(valCountry);
+        infoPanel.add(row3);
+        // Thành phố
+        JPanel row4 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        row4.setBackground(Color.WHITE);
+        JLabel lblCity = new JLabel("Thành phố:");
+        lblCity.setFont(labelFont);
+        JLabel valCity = new JLabel(city[0] != null ? city[0] : "");
+        valCity.setFont(valueFont);
+        row4.add(lblCity); row4.add(valCity);
+        infoPanel.add(row4);
+        // Số điện thoại
+        JPanel row5 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 2));
+        row5.setBackground(Color.WHITE);
+        JLabel lblPhone = new JLabel("Số điện thoại:");
+        lblPhone.setFont(labelFont);
+        JLabel valPhone = new JLabel(phone[0] != null ? phone[0] : "");
+        valPhone.setFont(valueFont);
+        row5.add(lblPhone); row5.add(valPhone);
+        infoPanel.add(row5);
+        panel.add(infoPanel);
+        panel.add(Box.createVerticalStrut(32));
+        // Nút sửa thông tin
+        JButton btnEdit = new JButton("Sửa thông tin");
+        btnEdit.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        btnEdit.setBackground(new Color(0x008BCF));
+        btnEdit.setForeground(Color.WHITE);
+        btnEdit.setFocusPainted(false);
+        btnEdit.setBorderPainted(false);
+        btnEdit.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnEdit.setPreferredSize(new Dimension(220, 48));
+        btnEdit.setMaximumSize(new Dimension(240, 48));
+        btnEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(btnEdit);
+        btnEdit.addActionListener(e -> {
+            // Panel nhập liệu dạng label + textfield như hình
+            JPanel editPanel = new JPanel(new GridBagLayout());
+            editPanel.setBackground(new Color(0xF5F5F5));
+            GridBagConstraints eg = new GridBagConstraints();
+            eg.insets = new Insets(8, 8, 8, 8);
+            eg.anchor = GridBagConstraints.WEST;
+            eg.fill = GridBagConstraints.HORIZONTAL;
+            eg.gridx = 0; eg.gridy = 0;
+            JLabel l1 = new JLabel("Họ tên:");
+            l1.setFont(labelFont);
+            editPanel.add(l1, eg);
+            eg.gridx = 1;
+            JTextField tfFullName = new JTextField(fullName[0], 20);
+            tfFullName.setFont(valueFont);
+            editPanel.add(tfFullName, eg);
+            eg.gridx = 0; eg.gridy++;
+            JLabel l2 = new JLabel("Ngày sinh (yyyy-mm-dd):");
+            l2.setFont(labelFont);
+            editPanel.add(l2, eg);
+            eg.gridx = 1;
+            JTextField tfDob = new JTextField(dob[0] != null ? dob[0].toString() : "", 20);
+            tfDob.setFont(valueFont);
+            editPanel.add(tfDob, eg);
+            eg.gridx = 0; eg.gridy++;
+            JLabel l3 = new JLabel("Quốc gia:");
+            l3.setFont(labelFont);
+            editPanel.add(l3, eg);
+            eg.gridx = 1;
+            JTextField tfCountry = new JTextField(country[0], 20);
+            tfCountry.setFont(valueFont);
+            editPanel.add(tfCountry, eg);
+            eg.gridx = 0; eg.gridy++;
+            JLabel l4 = new JLabel("Thành phố:");
+            l4.setFont(labelFont);
+            editPanel.add(l4, eg);
+            eg.gridx = 1;
+            JTextField tfCity = new JTextField(city[0], 20);
+            tfCity.setFont(valueFont);
+            editPanel.add(tfCity, eg);
+            eg.gridx = 0; eg.gridy++;
+            JLabel l5 = new JLabel("Số điện thoại:");
+            l5.setFont(labelFont);
+            editPanel.add(l5, eg);
+            eg.gridx = 1;
+            JTextField tfPhone = new JTextField(phone[0], 20);
+            tfPhone.setFont(valueFont);
+            editPanel.add(tfPhone, eg);
+            int result = JOptionPane.showConfirmDialog(panel, editPanel, "Sửa thông tin người dùng", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    String sql = "UPDATE USER_INFORMATION SET full_name=?, date_of_birth=?, Country=?, City=?, PhoneNumber=? WHERE UserID=?";
+                    PreparedStatement stmt = connection.prepareStatement(sql);
+                    stmt.setString(1, tfFullName.getText());
+                    stmt.setDate(2, tfDob.getText().isEmpty() ? null : java.sql.Date.valueOf(tfDob.getText()));
+                    stmt.setString(3, tfCountry.getText());
+                    stmt.setString(4, tfCity.getText());
+                    stmt.setString(5, tfPhone.getText());
+                    stmt.setInt(6, userId);
+                    stmt.executeUpdate();
+                    JOptionPane.showMessageDialog(panel, "Cập nhật thành công!");
+                    // Reload lại panel
+                    cardPanel.remove(outerPanel);
+                    cardPanel.add(createUserInfoPanel(), "userInfo");
+                    cardLayout.show(cardPanel, "userInfo");
+                    cardPanel.revalidate();
+                    cardPanel.repaint();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(panel, "Lỗi cập nhật: " + ex.getMessage());
                 }
-                String sql = "INSERT INTO TRANSACTION (UserID, TypeID, trans_amount, trans_date) VALUES (?, ?, ?, ?)";
-                PreparedStatement stmt = connection.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setString(2, typeId);
-                stmt.setBigDecimal(3, new java.math.BigDecimal(amountField.getText()));
-                stmt.setDate(4, java.sql.Date.valueOf(dateField.getText()));
-                stmt.executeUpdate();
-                loadTransactionData(model);
-                amountField.setText("");
-                dateField.setText("");
-                noteField.setText("");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(panel, "Lỗi thêm giao dịch: " + ex.getMessage());
             }
         });
-        return panel;
+        // Thêm panel nội dung vào panel cha căn giữa
+        outerPanel.add(panel, gbcOuter);
+        return outerPanel;
     }
 
-    private void loadTransactionData(DefaultTableModel model) {
-        model.setRowCount(0);
-        try {
-            String sql = "SELECT t.TransID, ty.type_description, t.trans_amount, t.trans_date, " +
-                        "CASE " +
-                        "   WHEN t.LoanID IS NOT NULL THEN 'Thanh toán khoản vay' " +
-                        "   WHEN t.InStID IS NOT NULL THEN 'Giao dịch đầu tư' " +
-                        "   WHEN t.IncomeID IS NOT NULL THEN 'Thu nhập' " +
-                        "   WHEN t.SaveID IS NOT NULL THEN 'Tiết kiệm' " +
-                        "   WHEN t.OverPayFeeID IS NOT NULL THEN 'Phí trả chậm' " +
-                        "   ELSE ty.type_description " +
-                        "END as note " +
-                        "FROM TRANSACTION t " +
-                        "LEFT JOIN TYPE ty ON t.TypeID = ty.TypeID AND t.UserID = ty.UserID " +
-                        "WHERE t.UserID = ? ORDER BY t.trans_date DESC";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Vector<Object> row = new Vector<>();
-                row.add(rs.getInt("TransID"));
-                row.add(rs.getString("type_description"));
-                row.add(""); // Không có mục đích
-                row.add(rs.getBigDecimal("trans_amount"));
-                row.add(rs.getDate("trans_date"));
-                row.add(rs.getString("note"));
-                model.addRow(row);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu giao dịch: " + e.getMessage());
-        }
-    }
-
-    private void loadPurposes(JComboBox<String> comboBox) {
-        comboBox.removeAllItems();
-        try {
-            String sql = "SELECT PurposeID, purpose_name FROM PURPOSE WHERE UserID = ?";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                comboBox.addItem(rs.getInt("PurposeID") + " - " + rs.getString("purpose_name"));
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải danh sách mục đích: " + e.getMessage());
-        }
+    public void showDashboard() {
+        cardLayout.show(cardPanel, "dashboard");
+        btnBack.setVisible(false);
+        cardPanel.revalidate();
+        cardPanel.repaint();
     }
 } 

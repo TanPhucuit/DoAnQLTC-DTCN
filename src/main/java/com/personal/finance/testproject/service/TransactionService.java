@@ -22,14 +22,14 @@ public class TransactionService {
     public void addBuyTransaction(int userId, String instId, BigDecimal amount, Date transDate, int incomeId) {
         try {
             // Kiểm tra số dư thu nhập
-            String sql = "SELECT ic_remain FROM INCOME WHERE IncomeID = ?";
+            String sql = "SELECT remain_income FROM INCOME WHERE IncomeID = ?";
             var stmt = connection.prepareStatement(sql);
             stmt.setInt(1, incomeId);
             var rs = stmt.executeQuery();
             if (!rs.next()) {
                 throw new RuntimeException("Không tìm thấy thu nhập");
             }
-            BigDecimal remainAmount = rs.getBigDecimal("ic_remain");
+            BigDecimal remainAmount = rs.getBigDecimal("remain_income");
             if (remainAmount.compareTo(amount) < 0) {
                 throw new RuntimeException("Số dư thu nhập không đủ để thực hiện giao dịch");
             }
@@ -38,7 +38,7 @@ public class TransactionService {
             transactionDAO.insertBuyTransaction(userId, instId, amount, transDate, incomeId);
 
             // Cập nhật số dư thu nhập
-            sql = "UPDATE INCOME SET ic_remain = ic_remain - ? WHERE IncomeID = ?";
+            sql = "UPDATE INCOME SET remain_income = remain_income - ? WHERE IncomeID = ?";
             stmt = connection.prepareStatement(sql);
             stmt.setBigDecimal(1, amount);
             stmt.setInt(2, incomeId);

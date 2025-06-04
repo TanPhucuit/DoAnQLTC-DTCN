@@ -13,9 +13,9 @@ public class DrawerPanel extends JLayeredPane {
     private static final int ANIMATION_STEPS = 10;
     private static final int ANIMATION_DELAY = 10;
     private static final Color DRAWER_BG = new Color(0xE0E0E0); // #E0E0E0
-    private static final Color MENU_TEXT = Color.BLACK; // #000000
-    private static final Color ACTIVE_MENU_BG = new Color(0x2E2E5D); // #2E2E5D
-    private static final Color HOVER_MENU_BG = new Color(0x4A4A8A); // #4A4A8A
+    private static final Color MENU_TEXT = Color.WHITE; // #FFFFFF
+    private static final Color ACTIVE_MENU_BG = new Color(0x008BCF); // #008BCF
+    private static final Color HOVER_MENU_BG = new Color(0x008BCF); // #008BCF
     private static final Color HOVER_TEXT = Color.WHITE; // #FFFFFF
 
     private int currentX;
@@ -115,7 +115,7 @@ public class DrawerPanel extends JLayeredPane {
         JButton menuItem = new JButton(text);
         menuItem.setFont(new Font("Arial", Font.BOLD, 15));
         menuItem.setForeground(MENU_TEXT);
-        menuItem.setBackground(DRAWER_BG);
+        menuItem.setBackground(new Color(0x00AEEF));
         menuItem.setBorderPainted(false);
         menuItem.setFocusPainted(false);
         menuItem.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -146,16 +146,12 @@ public class DrawerPanel extends JLayeredPane {
         menuItem.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (!menuKey.equals(activeMenu)) {
-                    menuItem.setBackground(HOVER_MENU_BG);
-                    menuItem.setForeground(HOVER_TEXT);
-                }
+                menuItem.setBackground(new Color(0x008BCF));
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                if (!menuKey.equals(activeMenu)) {
-                    menuItem.setBackground(DRAWER_BG);
-                    menuItem.setForeground(MENU_TEXT);
+                if (!menuItem.getBackground().equals(new Color(0xFFC107))) {
+                    menuItem.setBackground(new Color(0x00AEEF));
                 }
             }
         });
@@ -203,7 +199,7 @@ public class DrawerPanel extends JLayeredPane {
                 entry.getValue().setBackground(ACTIVE_MENU_BG);
                 entry.getValue().setForeground(MENU_TEXT);
             } else {
-                entry.getValue().setBackground(DRAWER_BG);
+                entry.getValue().setBackground(new Color(0x00AEEF));
                 entry.getValue().setForeground(MENU_TEXT);
             }
         }

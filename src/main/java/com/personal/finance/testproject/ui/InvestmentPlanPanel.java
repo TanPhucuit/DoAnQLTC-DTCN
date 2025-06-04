@@ -66,7 +66,46 @@ public class InvestmentPlanPanel extends JPanel {
         lblInvestorType.setVerticalAlignment(SwingConstants.CENTER);
         lblInvestorType.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblInvestorType.setText("");
-        infoPanel.add(lblInvestorType, BorderLayout.WEST);
+        infoPanel.add(lblInvestorType, BorderLayout.NORTH);
+        JButton btnChangeType = new JButton("Thay đổi loại nhà đầu tư");
+        btnChangeType.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnChangeType.setBackground(new Color(0x008BCF));
+        btnChangeType.setForeground(Color.WHITE);
+        btnChangeType.setFocusPainted(false);
+        btnChangeType.setBorderPainted(false);
+        btnChangeType.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnChangeType.setPreferredSize(new Dimension(180, 28));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        btnPanel.setBackground(PANEL_BG);
+        btnPanel.add(btnChangeType);
+        infoPanel.add(btnPanel, BorderLayout.CENTER);
+        btnChangeType.addActionListener(e -> {
+            String[] viTypes = {"Nhà đầu tư bảo thủ", "Nhà đầu tư cân bằng", "Nhà đầu tư mạo hiểm"};
+            String currentType = lblInvestorType.getText().replaceAll("<[^>]*>", "").replace("Loại nhà đầu tư: ", "").trim();
+            int selectedIdx = 0;
+            for (int i = 0; i < viTypes.length; i++) {
+                if (currentType.equals(viTypes[i])) selectedIdx = i;
+            }
+            JComboBox<String> cb = new JComboBox<>(viTypes);
+            cb.setSelectedIndex(selectedIdx);
+            int result = JOptionPane.showConfirmDialog(this, cb, "Chọn loại nhà đầu tư", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (result == JOptionPane.OK_OPTION) {
+                int idx = cb.getSelectedIndex();
+                String newType = viTypes[idx];
+                try {
+                    String sql = "UPDATE FINANCIAL_PLAN SET Investor_type = ? WHERE UserID = ?";
+                    PreparedStatement stmt = connection.prepareStatement(sql);
+                    stmt.setString(1, newType);
+                    stmt.setInt(2, userId);
+                    stmt.executeUpdate();
+                    loadInvestmentPlan(lblInvestorType, null, null, null, null);
+                    loadAllocationTable();
+                    JOptionPane.showMessageDialog(this, "Đã thay đổi loại nhà đầu tư thành công!");
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this, "Lỗi khi thay đổi loại nhà đầu tư: " + ex.getMessage());
+                }
+            }
+        });
 
         JPanel allocationPanel = new JPanel(new BorderLayout());
         allocationPanel.setBackground(PANEL_BG);
@@ -99,7 +138,7 @@ public class InvestmentPlanPanel extends JPanel {
         statusPanel.setBackground(PANEL_BG);
         JButton checkButton = new JButton("Kiểm tra trạng thái phân bổ");
         checkButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        checkButton.setBackground(new Color(0x2E2E5D));
+        checkButton.setBackground(new Color(0x008BCF));
         checkButton.setForeground(Color.WHITE);
         checkButton.setFocusPainted(false);
         checkButton.setBorderPainted(false);
@@ -161,7 +200,7 @@ public class InvestmentPlanPanel extends JPanel {
                 gbc.gridy++;
                 JButton btnCreate = new JButton("Tạo kế hoạch đầu tư");
                 btnCreate.setFont(new Font("Segoe UI", Font.BOLD, 16));
-                btnCreate.setBackground(new Color(0x2E2E5D));
+                btnCreate.setBackground(new Color(0x008BCF));
                 btnCreate.setForeground(Color.WHITE);
                 btnCreate.setFocusPainted(false);
                 btnCreate.setBorderPainted(false);

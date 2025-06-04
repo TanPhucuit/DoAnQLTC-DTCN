@@ -14,10 +14,14 @@ public class LoanManagementPanel extends JPanel {
     private Connection connection;
     private JTable loanTable;
     private DefaultTableModel tableModel;
-    private JTabbedPane tabbedPane;
+    private DefaultTableModel detailModel;
+    private DefaultTableModel feeModel;
+    private JComboBox<String> statusFilter;
+    private ManageSearchFrame parentFrame;
 
-    public LoanManagementPanel(int userId) {
+    public LoanManagementPanel(int userId, ManageSearchFrame parentFrame) {
         this.userId = userId;
+        this.parentFrame = parentFrame;
         try {
             this.connection = DatabaseConnection.getConnection();
         } catch (SQLException e) {
@@ -33,115 +37,38 @@ public class LoanManagementPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // Title
         JLabel titleLabel = new JLabel("Quản lý khoản vay");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         add(titleLabel, BorderLayout.NORTH);
 
-        // Create tabbed pane
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        
-        // Tab 1: Danh sách khoản vay
-        JPanel loanListPanel = createLoanListPanel();
-        tabbedPane.addTab("Danh sách khoản vay", loanListPanel);
-
-        // Tab 2: Chi tiết khoản vay
-        JPanel loanDetailPanel = createLoanDetailPanel();
-        tabbedPane.addTab("Chi tiết khoản vay", loanDetailPanel);
-
-        // Tab 3: Phí trả chậm
-        JPanel loanFeePanel = createLoanFeePanel();
-        tabbedPane.addTab("Phí trả chậm", loanFeePanel);
-
-        // Tab 4: Thanh toán khoản vay
-        JPanel payLoanPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbcPay = new GridBagConstraints();
-        gbcPay.insets = new Insets(5, 5, 5, 5);
-        gbcPay.fill = GridBagConstraints.HORIZONTAL;
-
-        JLabel lblLoanId = new JLabel("ID khoản vay:");
-        JTextField loanIdField = new JTextField(10);
-        gbcPay.gridx = 0; gbcPay.gridy = 0;
-        payLoanPanel.add(lblLoanId, gbcPay);
-        gbcPay.gridx = 1;
-        payLoanPanel.add(loanIdField, gbcPay);
-
-        JLabel lblSource = new JLabel("Nguồn tiền:");
-        JComboBox<String> sourceCombo = new JComboBox<>(new String[]{"Lương", "Phụ cấp"});
-        gbcPay.gridx = 0; gbcPay.gridy = 1;
-        payLoanPanel.add(lblSource, gbcPay);
-        gbcPay.gridx = 1;
-        payLoanPanel.add(sourceCombo, gbcPay);
-
-        JLabel lblPayDate = new JLabel("Ngày thanh toán:");
-        JDateChooser payDateChooser = new JDateChooser();
-        payDateChooser.setDateFormatString("yyyy-MM-dd");
-        gbcPay.gridx = 0; gbcPay.gridy = 2;
-        payLoanPanel.add(lblPayDate, gbcPay);
-        gbcPay.gridx = 1;
-        payLoanPanel.add(payDateChooser, gbcPay);
-
-        JButton btnPay = new JButton("Thanh toán khoản vay");
-        gbcPay.gridx = 0; gbcPay.gridy = 3;
-        gbcPay.gridwidth = 2;
-        payLoanPanel.add(btnPay, gbcPay);
-
-        btnPay.addActionListener(e -> {
-            try {
-                int loanId = Integer.parseInt(loanIdField.getText());
-                String source = (String)sourceCombo.getSelectedItem();
-                java.util.Date utilDate = payDateChooser.getDate();
-                if (utilDate == null) throw new Exception("Vui lòng chọn ngày thanh toán");
-                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-                String month = String.format("%tm", utilDate);
-                // Lấy số tiền phải trả kỳ này
-                String sqlLoan = "SELECT pay_per_term FROM LOAN WHERE LoanID = ? AND UserID = ?";
-                PreparedStatement stmtLoan = connection.prepareStatement(sqlLoan);
-                stmtLoan.setInt(1, loanId);
-                stmtLoan.setInt(2, userId);
-                ResultSet rsLoan = stmtLoan.executeQuery();
-                if (!rsLoan.next()) throw new Exception("Không tìm thấy khoản vay");
-                BigDecimal payAmount = rsLoan.getBigDecimal("pay_per_term");
-                // Tìm IncomeID phù hợp
-                String sqlIncome = "SELECT IncomeID, remain_income FROM INCOME WHERE UserID = ? AND ic_month = ? AND income_name = ? ORDER BY IncomeID LIMIT 1";
-                PreparedStatement stmtIncome = connection.prepareStatement(sqlIncome);
-                stmtIncome.setInt(1, userId);
-                stmtIncome.setString(2, month);
-                stmtIncome.setString(3, source);
-                ResultSet rsIncome = stmtIncome.executeQuery();
-                if (!rsIncome.next()) throw new Exception("Không tìm thấy nguồn tiền phù hợp");
-                int incomeId = rsIncome.getInt("IncomeID");
-                BigDecimal remain = rsIncome.getBigDecimal("remain_income");
-                if (remain.compareTo(payAmount) < 0) throw new Exception("Số dư nguồn tiền không đủ");
-                // Trừ remain_income
-                String sqlUpdate = "UPDATE INCOME SET remain_income = remain_income - ? WHERE IncomeID = ? AND UserID = ?";
-                PreparedStatement stmtUpdate = connection.prepareStatement(sqlUpdate);
-                stmtUpdate.setBigDecimal(1, payAmount);
-                stmtUpdate.setInt(2, incomeId);
-                stmtUpdate.setInt(3, userId);
-                stmtUpdate.executeUpdate();
-                // Thêm transaction
-                String sqlTrans = "INSERT INTO TRANSACTION (UserID, TypeID, trans_amount, trans_date, LoanID, IncomeID) VALUES (?, 'loan_pay', ?, ?, ?, ?)";
-                PreparedStatement stmtTrans = connection.prepareStatement(sqlTrans);
-                stmtTrans.setInt(1, userId);
-                stmtTrans.setBigDecimal(2, payAmount);
-                stmtTrans.setDate(3, sqlDate);
-                stmtTrans.setInt(4, loanId);
-                stmtTrans.setInt(5, incomeId);
-                stmtTrans.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Thanh toán khoản vay thành công!");
-                loanIdField.setText("");
-                payDateChooser.setDate(null);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi thanh toán khoản vay: " + ex.getMessage());
+        JButton btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> {
+            if (parentFrame != null) {
+                parentFrame.showDashboard();
             }
         });
+        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        backPanel.setBackground(Color.WHITE);
+        backPanel.add(btnBack);
+        add(backPanel, BorderLayout.NORTH);
 
-        tabbedPane.addTab("Thanh toán khoản vay", payLoanPanel);
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        tabbedPane.setBackground(Color.WHITE);
+        tabbedPane.setForeground(new Color(0x2E2E5D));
 
-        // Add tabbed pane to main panel
+        tabbedPane.addTab("Danh sách khoản vay", createLoanListPanel());
+        tabbedPane.addTab("Chi tiết khoản vay", createLoanDetailPanel());
+        tabbedPane.addTab("Phí trả chậm", createLoanFeePanel());
+        // tabbedPane.addTab("Thanh toán khoản vay", createPayLoanPanel());
+
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -179,9 +106,21 @@ public class LoanManagementPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
+        // Thanh trên cùng với nút refresh
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setBackground(Color.WHITE);
+        JButton btnRefresh = new JButton("Làm mới");
+        btnRefresh.setToolTipText("Lấy dữ liệu mới nhất");
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setBackground(new Color(0x008BCF));
+        btnRefresh.setForeground(Color.WHITE);
+        topPanel.add(btnRefresh);
+        panel.add(topPanel, BorderLayout.NORTH);
+
         // Chỉ hiển thị các trường: Lãi suất, Số kỳ, Số tiền/kỳ, Ngày trả, Số kỳ đã trả, Số tiền đã trả, Số tiền còn lại
         String[] detailColumns = {"Lãi suất", "Số kỳ", "Số tiền/kỳ", "Ngày trả", "Số kỳ đã trả", "Số tiền đã trả", "Số tiền còn lại"};
-        DefaultTableModel detailModel = new DefaultTableModel(detailColumns, 0) {
+        detailModel = new DefaultTableModel(detailColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -195,6 +134,9 @@ public class LoanManagementPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(detailTable);
         scrollPane.setPreferredSize(new Dimension(900, 400));
         panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Nút refresh cập nhật lại bảng chi tiết
+        btnRefresh.addActionListener(e -> loadLoanDetails(detailModel));
 
         // Load loan details data
         loadLoanDetails(detailModel);
@@ -259,7 +201,7 @@ public class LoanManagementPanel extends JPanel {
 
         // Add button
         JButton btnAdd = new JButton("Thêm khoản vay");
-        btnAdd.setBackground(new Color(0x2E2E5D));
+        btnAdd.setBackground(new Color(0x008BCF));
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnAdd.setFocusPainted(false);
@@ -312,16 +254,7 @@ public class LoanManagementPanel extends JPanel {
                 
                 // Refresh tables
                 refreshTable();
-                Component detailTab = tabbedPane.getComponentAt(1);
-                if (detailTab instanceof JPanel) {
-                    Component scrollPane = ((JPanel) detailTab).getComponent(0);
-                    if (scrollPane instanceof JScrollPane) {
-                        Component view = ((JScrollPane) scrollPane).getViewport().getView();
-                        if (view instanceof JTable) {
-                            loadLoanDetails((DefaultTableModel) ((JTable) view).getModel());
-                        }
-                    }
-                }
+                loadLoanDetails(detailModel);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi khi thêm khoản vay: " + ex.getMessage());
             } catch (NumberFormatException ex) {
@@ -405,7 +338,7 @@ public class LoanManagementPanel extends JPanel {
         // Filter panel
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         filterPanel.setBackground(Color.WHITE);
-        JComboBox<String> statusFilter = new JComboBox<>(new String[]{"Tất cả", "Chưa thanh toán", "Đã thanh toán"});
+        statusFilter = new JComboBox<>(new String[]{"Tất cả", "Chưa thanh toán", "Đã thanh toán"});
         statusFilter.setPreferredSize(new Dimension(150, 30));
         statusFilter.addActionListener(e -> refreshFeeTable());
         filterPanel.add(new JLabel("Trạng thái:"));
@@ -414,7 +347,7 @@ public class LoanManagementPanel extends JPanel {
 
         // Tạo bảng hiển thị phí trả chậm
         String[] columnNames = {"ID khoản vay", "Mục đích", "Kỳ hạn", "Số tiền phí", "Trạng thái", "Thanh toán"};
-        DefaultTableModel feeModel = new DefaultTableModel(columnNames, 0) {
+        feeModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 5; // Chỉ cho phép chỉnh sửa cột Thanh toán
@@ -478,18 +411,8 @@ public class LoanManagementPanel extends JPanel {
     }
 
     private void refreshFeeTable() {
-        Component feeTab = tabbedPane.getComponentAt(2);
-        if (feeTab instanceof JPanel) {
-            Component scrollPane = ((JPanel) feeTab).getComponent(1);
-            if (scrollPane instanceof JScrollPane) {
-                Component view = ((JScrollPane) scrollPane).getViewport().getView();
-                if (view instanceof JTable) {
-                    JTable table = (JTable) view;
-                    JPanel filterPanel = (JPanel) ((JPanel) feeTab).getComponent(0);
-                    JComboBox<String> statusFilter = (JComboBox<String>) filterPanel.getComponent(1);
-                    loadLoanFees((DefaultTableModel) table.getModel(), (String) statusFilter.getSelectedItem());
-                }
-            }
+        if (feeModel != null && statusFilter != null) {
+            loadLoanFees(feeModel, (String) statusFilter.getSelectedItem());
         }
     }
 
@@ -497,7 +420,7 @@ public class LoanManagementPanel extends JPanel {
     private static class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
-            setBackground(new Color(0x2E2E5D));
+            setBackground(new Color(0x008BCF));
             setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.BOLD, 15));
             setFocusPainted(false);
@@ -526,7 +449,7 @@ public class LoanManagementPanel extends JPanel {
             this.statusFilter = statusFilter;
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(0x2E2E5D));
+            button.setBackground(new Color(0x008BCF));
             button.setForeground(Color.WHITE);
             button.setFont(new Font("Segoe UI", Font.BOLD, 15));
             button.setFocusPainted(false);

@@ -8,6 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.personal.finance.testproject.util.DatabaseConnection;
+import javax.swing.table.DefaultTableModel;
 
 public class TransferLayeredPanel extends JPanel {
     private final int userId;
@@ -127,21 +128,102 @@ public class TransferLayeredPanel extends JPanel {
         title.setForeground(new Color(255, 215, 0));
         title.setBounds(0, 30, 420, 40);
         panel.add(title);
-        confirmInfoLabel = new JLabel("", SwingConstants.CENTER);
-        confirmInfoLabel.setForeground(Color.WHITE);
-        confirmInfoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        confirmInfoLabel.setBounds(40, 100, 340, 200);
-        panel.add(confirmInfoLabel);
+        // Thông tin hóa đơn
+        JLabel lblFrom = new JLabel("Tài khoản nguồn:");
+        lblFrom.setForeground(Color.WHITE);
+        lblFrom.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblFrom.setBounds(40, 90, 140, 30);
+        panel.add(lblFrom);
+        JTextField txtFrom = new JTextField();
+        txtFrom.setBounds(180, 90, 200, 30);
+        txtFrom.setEditable(false);
+        panel.add(txtFrom);
+        JLabel lblTo = new JLabel("Tài khoản thụ hưởng:");
+        lblTo.setForeground(Color.WHITE);
+        lblTo.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblTo.setBounds(40, 130, 140, 30);
+        panel.add(lblTo);
+        JTextField txtTo = new JTextField();
+        txtTo.setBounds(180, 130, 200, 30);
+        txtTo.setEditable(false);
+        panel.add(txtTo);
+        JLabel lblBank = new JLabel("Ngân hàng thụ hưởng:");
+        lblBank.setForeground(Color.WHITE);
+        lblBank.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblBank.setBounds(40, 170, 140, 30);
+        panel.add(lblBank);
+        JTextField txtBank = new JTextField();
+        txtBank.setBounds(180, 170, 200, 30);
+        txtBank.setEditable(false);
+        panel.add(txtBank);
+        JLabel lblName = new JLabel("Tên người nhận:");
+        lblName.setForeground(Color.WHITE);
+        lblName.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblName.setBounds(40, 210, 140, 30);
+        panel.add(lblName);
+        JTextField txtName = new JTextField();
+        txtName.setBounds(180, 210, 200, 30);
+        txtName.setEditable(false);
+        panel.add(txtName);
+        JLabel lblAmount = new JLabel("Số tiền:");
+        lblAmount.setForeground(Color.WHITE);
+        lblAmount.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblAmount.setBounds(40, 250, 140, 30);
+        panel.add(lblAmount);
+        JTextField txtAmount = new JTextField();
+        txtAmount.setBounds(180, 250, 200, 30);
+        txtAmount.setEditable(false);
+        panel.add(txtAmount);
+        JLabel lblContent = new JLabel("Nội dung:");
+        lblContent.setForeground(Color.WHITE);
+        lblContent.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblContent.setBounds(40, 290, 140, 30);
+        panel.add(lblContent);
+        JTextField txtContent = new JTextField();
+        txtContent.setBounds(180, 290, 200, 30);
+        txtContent.setEditable(false);
+        panel.add(txtContent);
+        // Nút thực hiện giao dịch và quay lại
         nextBtn2 = new JButton("Thực hiện giao dịch");
         nextBtn2.setBackground(new Color(255, 215, 0));
         nextBtn2.setBounds(120, 350, 180, 40);
         nextBtn2.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        nextBtn2.addActionListener(e -> handleStep2Next());
+        nextBtn2.setEnabled(true);
+        nextBtn2.addActionListener(e -> {
+            nextBtn2.setEnabled(false);
+            nextBtn2.setVisible(false);
+            JLabel loadingText = new JLabel("Đang thực hiện giao dịch...", SwingConstants.CENTER);
+            loadingText.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            loadingText.setForeground(new Color(255, 215, 0));
+            loadingText.setBounds(120, 350, 180, 40);
+            step2Panel.add(loadingText);
+            step2Panel.repaint();
+            new Thread(() -> {
+                try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+                SwingUtilities.invokeLater(() -> {
+                    step2Panel.remove(loadingText);
+                    // Sau loading, thực hiện giao dịch và chuyển sang step3Panel
+                    doTransferAndShowResult();
+                });
+            }).start();
+        });
         panel.add(nextBtn2);
         backBtn2 = new JButton("Quay lại");
         backBtn2.setBounds(120, 410, 180, 32);
         backBtn2.addActionListener(e -> showStep(1));
         panel.add(backBtn2);
+        // Gán dữ liệu khi hiển thị panel này
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                txtFrom.setText(sourceAccount != null ? sourceAccount : "");
+                txtTo.setText(destAccount != null ? destAccount : "");
+                txtBank.setText(destBank != null ? destBank : "");
+                txtName.setText(destName != null ? destName : "");
+                txtAmount.setText(String.format("%,.0f", amount));
+                txtContent.setText(content != null ? content : "");
+            }
+        });
         return panel;
     }
 
@@ -300,99 +382,140 @@ public class TransferLayeredPanel extends JPanel {
             errorLabel.setText("Lỗi kiểm tra số dư: " + e.getMessage());
             return;
         }
-        // Hiển thị thông tin xác nhận
-        confirmInfoLabel.setText("Từ: " + sourceAccount +
-                "<br>Đến: " + destAccount + " - " + destBank +
-                (destName != null && !destName.isEmpty() ? "<br>Tên: " + destName : "") +
-                "<br>Số tiền: " + String.format("%,.0f", amount) +
-                "<br>Nội dung: " + content);
+        // Chuyển sang màn hình xác nhận giao dịch (step2Panel) và cập nhật dữ liệu hóa đơn
+        for (Component comp : step2Panel.getComponents()) {
+            if (comp instanceof JTextField) {
+                JTextField tf = (JTextField) comp;
+                if (tf.getBounds().y == 90) tf.setText(sourceAccount != null ? sourceAccount : "");
+                else if (tf.getBounds().y == 130) tf.setText(destAccount != null ? destAccount : "");
+                else if (tf.getBounds().y == 170) tf.setText(destBank != null ? destBank : "");
+                else if (tf.getBounds().y == 210) tf.setText(destName != null ? destName : "");
+                else if (tf.getBounds().y == 250) tf.setText(String.format("%,.0f", amount));
+                else if (tf.getBounds().y == 290) tf.setText(content != null ? content : "");
+            }
+        }
         showStep(2);
     }
 
-    private void handleStep2Next() {
-        // Thực hiện chuyển khoản và lưu lịch sử
-        boolean success = false;
-        String errorMsg = "";
-        String transId = "";
+    private void doTransferAndShowResult() {
+        final boolean[] success = {false};
+        final String[] errorMsg = {""};
+        final String[] transId = {""};
         try {
             String srcAcc = sourceAccount.split(" - ")[0];
-            // Trừ tiền tài khoản nguồn
             PreparedStatement stmt1 = connection.prepareStatement("UPDATE BANK_ACCOUNT SET Balance = Balance - ? WHERE BankAccountNumber = ?");
             stmt1.setDouble(1, amount);
             stmt1.setString(2, srcAcc);
             int updated1 = stmt1.executeUpdate();
-            // Cộng tiền tài khoản đích
             PreparedStatement stmt2 = connection.prepareStatement("UPDATE BANK_ACCOUNT SET Balance = Balance + ? WHERE BankAccountNumber = ?");
             stmt2.setDouble(1, amount);
             stmt2.setString(2, destAccount);
             int updated2 = stmt2.executeUpdate();
             if (updated1 == 1 && updated2 == 1) {
-                // Lưu lịch sử giao dịch
                 PreparedStatement stmt3 = connection.prepareStatement("INSERT INTO BANK_TRANSFER (SourceBankAccountNumber, TargetBankAccountNumber, Transfer_amount, Transfer_date) VALUES (?, ?, ?, NOW())", Statement.RETURN_GENERATED_KEYS);
                 stmt3.setString(1, srcAcc);
                 stmt3.setString(2, destAccount);
                 stmt3.setDouble(3, amount);
                 stmt3.executeUpdate();
                 ResultSet rs = stmt3.getGeneratedKeys();
-                if (rs.next()) transId = rs.getString(1);
-                success = true;
+                if (rs.next()) transId[0] = rs.getString(1);
+                success[0] = true;
             } else {
-                errorMsg = "Không thể cập nhật số dư tài khoản.";
+                errorMsg[0] = "Không thể cập nhật số dư tài khoản.";
             }
         } catch (SQLException e) {
-            errorMsg = e.getMessage();
+            errorMsg[0] = e.getMessage();
         }
-        // Lấy các label để cập nhật
-        JLabel iconLabel = (JLabel) this.successInfoLabel.getClientProperty("iconLabel");
-        JLabel statusLabel = (JLabel) this.successInfoLabel.getClientProperty("statusLabel");
-        JLabel amountLabel = (JLabel) this.successInfoLabel.getClientProperty("amountLabel");
-        JLabel timeLabel = (JLabel) this.successInfoLabel.getClientProperty("timeLabel");
-        JLabel infoLabel = (JLabel) this.successInfoLabel.getClientProperty("infoLabel");
-        // Cập nhật thông tin
-        if (success) {
-            // Icon thành công
-            ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("icons/safe_status.png"));
-            if (icon != null) {
-                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-                iconLabel.setIcon(new ImageIcon(img));
+        // Luôn chuyển sang step3Panel và cập nhật kết quả
+        SwingUtilities.invokeLater(() -> {
+            JLabel iconLabel = (JLabel) this.successInfoLabel.getClientProperty("iconLabel");
+            JLabel statusLabel = (JLabel) this.successInfoLabel.getClientProperty("statusLabel");
+            JLabel amountLabel = (JLabel) this.successInfoLabel.getClientProperty("amountLabel");
+            JLabel timeLabel = (JLabel) this.successInfoLabel.getClientProperty("timeLabel");
+            JLabel infoLabel = (JLabel) this.successInfoLabel.getClientProperty("infoLabel");
+            if (success[0]) {
+                ImageIcon icon2 = new ImageIcon(getClass().getClassLoader().getResource("icons/safe_status.png"));
+                if (icon2 != null) {
+                    Image img = icon2.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                    iconLabel.setIcon(new ImageIcon(img));
+                }
+                statusLabel.setText("CHUYỂN KHOẢN THÀNH CÔNG");
+                statusLabel.setForeground(new Color(0, 200, 83));
+                amountLabel.setText(String.format("%s VND", String.format("%,.0f", amount)));
+                amountLabel.setForeground(new Color(0, 200, 83));
+                timeLabel.setText(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").format(java.time.LocalDateTime.now()));
+                StringBuilder info = new StringBuilder();
+                info.append("<html>");
+                info.append("<b>Tên người thụ hưởng:</b> " + (destName != null && !destName.isEmpty() ? destName : "---") + "<br>");
+                info.append("<b>Tài khoản thụ hưởng:</b> " + destAccount + "<br>");
+                info.append("<b>Ngân hàng thụ hưởng:</b> " + (destBank != null ? destBank : "---") + "<br>");
+                info.append("<b>Mã giao dịch:</b> " + transId[0] + "<br>");
+                info.append("<b>Nội dung:</b> " + (content != null && !content.isEmpty() ? content : "---") + "");
+                info.append("</html>");
+                infoLabel.setText(info.toString());
+            } else {
+                ImageIcon icon2 = new ImageIcon(getClass().getClassLoader().getResource("icons/dangerous_status.png"));
+                if (icon2 != null) {
+                    Image img = icon2.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                    iconLabel.setIcon(new ImageIcon(img));
+                }
+                statusLabel.setText("CHUYỂN KHOẢN THẤT BẠI");
+                statusLabel.setForeground(Color.RED);
+                amountLabel.setText(String.format("%s VND", String.format("%,.0f", amount)));
+                amountLabel.setForeground(Color.RED);
+                timeLabel.setText(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").format(java.time.LocalDateTime.now()));
+                StringBuilder info = new StringBuilder();
+                info.append("<html>");
+                info.append("<b>Lý do:</b> " + errorMsg[0] + "<br>");
+                info.append("<b>Tài khoản nguồn:</b> " + (sourceAccount != null ? sourceAccount : "---") + "<br>");
+                info.append("<b>Tài khoản thụ hưởng:</b> " + destAccount + "<br>");
+                info.append("<b>Ngân hàng thụ hưởng:</b> " + (destBank != null ? destBank : "---") + "<br>");
+                info.append("<b>Nội dung:</b> " + (content != null && !content.isEmpty() ? content : "---") + "");
+                info.append("</html>");
+                infoLabel.setText(info.toString());
             }
-            statusLabel.setText("CHUYỂN KHOẢN THÀNH CÔNG");
-            statusLabel.setForeground(new Color(0, 200, 83));
-            amountLabel.setText(String.format("%s VND", String.format("%,.0f", amount)));
-            amountLabel.setForeground(new Color(0, 200, 83));
-            timeLabel.setText(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").format(java.time.LocalDateTime.now()));
-            StringBuilder info = new StringBuilder();
-            info.append("<html>");
-            info.append("<b>Tên người thụ hưởng:</b> " + (destName != null && !destName.isEmpty() ? destName : "---") + "<br>");
-            info.append("<b>Tài khoản thụ hưởng:</b> " + destAccount + "<br>");
-            info.append("<b>Ngân hàng thụ hưởng:</b> " + (destBank != null ? destBank : "---") + "<br>");
-            info.append("<b>Mã giao dịch:</b> " + transId + "<br>");
-            info.append("<b>Nội dung:</b> " + (content != null && !content.isEmpty() ? content : "---") + "");
-            info.append("</html>");
-            infoLabel.setText(info.toString());
-        } else {
-            // Icon thất bại
-            ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("icons/dangerous_status.png"));
-            if (icon != null) {
-                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-                iconLabel.setIcon(new ImageIcon(img));
+            showStep(3);
+            // Reload bảng lịch sử chuyển tiền nếu có
+            Container parent = getParent();
+            while (parent != null && !(parent instanceof BankAccountPanel)) parent = parent.getParent();
+            if (parent instanceof BankAccountPanel) {
+                BankAccountPanel bankPanel = (BankAccountPanel) parent;
+                JTabbedPane tabbedPane = null;
+                for (Component c : bankPanel.getComponents()) {
+                    if (c instanceof JTabbedPane) tabbedPane = (JTabbedPane) c;
+                }
+                if (tabbedPane != null) {
+                    // Tìm tab lịch sử chuyển tiền
+                    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                        if (tabbedPane.getTitleAt(i).toLowerCase().contains("lịch sử chuyển tiền")) {
+                            Component comp = tabbedPane.getComponentAt(i);
+                            JTable table = null;
+                            if (comp instanceof JPanel) {
+                                for (Component sub : ((JPanel) comp).getComponents()) {
+                                    if (sub instanceof JScrollPane) {
+                                        JScrollPane scroll = (JScrollPane) sub;
+                                        JViewport viewport = scroll.getViewport();
+                                        Component view = viewport.getView();
+                                        if (view instanceof JTable) {
+                                            table = (JTable) view;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (table != null) {
+                                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                                try {
+                                    bankPanel.getClass().getDeclaredMethod("loadTransferHistory", DefaultTableModel.class).invoke(bankPanel, model);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            statusLabel.setText("CHUYỂN KHOẢN THẤT BẠI");
-            statusLabel.setForeground(Color.RED);
-            amountLabel.setText(String.format("%s VND", String.format("%,.0f", amount)));
-            amountLabel.setForeground(Color.RED);
-            timeLabel.setText(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy").format(java.time.LocalDateTime.now()));
-            StringBuilder info = new StringBuilder();
-            info.append("<html>");
-            info.append("<b>Lý do:</b> " + errorMsg + "<br>");
-            info.append("<b>Tài khoản nguồn:</b> " + (sourceAccount != null ? sourceAccount : "---") + "<br>");
-            info.append("<b>Tài khoản thụ hưởng:</b> " + destAccount + "<br>");
-            info.append("<b>Ngân hàng thụ hưởng:</b> " + (destBank != null ? destBank : "---") + "<br>");
-            info.append("<b>Nội dung:</b> " + (content != null && !content.isEmpty() ? content : "---") + "");
-            info.append("</html>");
-            infoLabel.setText(info.toString());
-        }
-        showStep(3);
+        });
     }
 
     private void resetForm() {

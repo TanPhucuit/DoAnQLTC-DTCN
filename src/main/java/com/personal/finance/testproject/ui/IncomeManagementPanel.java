@@ -13,9 +13,11 @@ public class IncomeManagementPanel extends JPanel {
     private Connection connection;
     private JTable incomeTable;
     private DefaultTableModel tableModel;
+    private ManageSearchFrame parentFrame;
 
-    public IncomeManagementPanel(int userId) {
+    public IncomeManagementPanel(int userId, ManageSearchFrame parentFrame) {
         this.userId = userId;
+        this.parentFrame = parentFrame;
         try {
             this.connection = DatabaseConnection.getConnection();
         } catch (SQLException e) {
@@ -78,7 +80,7 @@ public class IncomeManagementPanel extends JPanel {
 
         // Add button
         JButton btnAdd = new JButton("Thêm khoản thu");
-        btnAdd.setBackground(new Color(0x2E2E5D));
+        btnAdd.setBackground(new Color(0x008BCF));
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnAdd.setFocusPainted(false);
@@ -101,12 +103,13 @@ public class IncomeManagementPanel extends JPanel {
                 }
 
                 // Insert new income record
-                String sql = "INSERT INTO INCOME (UserID, ic_month, income_name, income_amount) VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO INCOME (UserID, ic_month, income_name, income_amount, remain_income) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement stmt = connection.prepareStatement(sql);
                 stmt.setInt(1, userId);
                 stmt.setString(2, month);
                 stmt.setString(3, name);
                 stmt.setBigDecimal(4, amount);
+                stmt.setBigDecimal(5, amount);
                 stmt.executeUpdate();
 
                 JOptionPane.showMessageDialog(this, "Thêm khoản thu thành công");
@@ -124,14 +127,37 @@ public class IncomeManagementPanel extends JPanel {
             }
         });
 
-        // Canh giữa inputPanel và bảng
+        // Thêm nút quay lại ở đầu constructor hoặc initializeUI
+        JButton btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> {
+            if (parentFrame != null) {
+                parentFrame.showDashboard();
+            }
+        });
+        JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        backPanel.setBackground(new Color(0xF5F5F5));
+        backPanel.add(btnBack);
+        // Thêm backPanel vào dòng đầu tiên
+        GridBagConstraints backGbc = new GridBagConstraints();
+        backGbc.gridx = 0;
+        backGbc.gridy = 0;
+        backGbc.anchor = GridBagConstraints.WEST;
+        backGbc.insets = new Insets(0, 0, 0, 0);
+        add(backPanel, backGbc);
+        // Đẩy các thành phần khác xuống
         GridBagConstraints outerGbc = new GridBagConstraints();
         outerGbc.gridx = 0;
-        outerGbc.gridy = 0;
+        outerGbc.gridy = 1;
         outerGbc.anchor = GridBagConstraints.CENTER;
         outerGbc.insets = new Insets(20, 0, 20, 0);
         add(inputPanel, outerGbc);
-        outerGbc.gridy = 1;
+        outerGbc.gridy = 2;
         outerGbc.weightx = 1.0;
         outerGbc.weighty = 1.0;
         outerGbc.fill = GridBagConstraints.BOTH;

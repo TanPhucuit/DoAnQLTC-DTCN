@@ -105,6 +105,23 @@ public class BankAccountPanel extends JPanel {
         loadTransferHistory(model);
 
         panel.add(scrollPane, BorderLayout.CENTER);
+        // Thêm nút làm mới ở góc dưới cùng bên phải
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(PANEL_BG);
+        JButton btnRefresh = new JButton("Làm mới");
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnRefresh.setBackground(new Color(0x008BCF));
+        btnRefresh.setForeground(Color.WHITE);
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.setBorder(BorderFactory.createLineBorder(ACCENT, 1, true));
+        btnRefresh.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefresh.addActionListener(e -> loadTransferHistory(model));
+        bottomPanel.add(btnRefresh);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+        panel.setMinimumSize(new Dimension(400, 300));
+        scrollPane.setPreferredSize(new Dimension(800, 300));
+        panel.revalidate();
+        panel.repaint();
         return panel;
     }
 

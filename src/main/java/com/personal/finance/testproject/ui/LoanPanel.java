@@ -346,7 +346,7 @@ public class LoanPanel extends JPanel {
     private static class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
-            setBackground(new Color(0x2E2E5D));
+            setBackground(new Color(0x008BCF));
             setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.BOLD, 15));
             setFocusPainted(false);
@@ -369,7 +369,7 @@ public class LoanPanel extends JPanel {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(0x2E2E5D));
+            button.setBackground(new Color(0x008BCF));
             button.setForeground(Color.WHITE);
             button.setFont(new Font("Segoe UI", Font.BOLD, 15));
             button.setFocusPainted(false);

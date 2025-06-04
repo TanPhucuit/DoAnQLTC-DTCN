@@ -110,7 +110,7 @@ public class StatisticsPanel extends JPanel {
         statCombo.setPreferredSize(new Dimension(320, 40));
         JButton btnStat = new JButton("Thống kê");
         btnStat.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnStat.setBackground(new Color(0x2E2E5D));
+        btnStat.setBackground(new Color(0x008BCF));
         btnStat.setForeground(Color.WHITE);
         btnStat.setFocusPainted(false);
         btnStat.setBorderPainted(false);

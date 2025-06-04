@@ -11,14 +11,16 @@ import java.math.BigDecimal;
 public class PurposePanel extends JPanel {
     private final int userId;
     private Connection connection;
+    private ManageSearchFrame parentFrame;
     private static final Color MAIN_BG = new Color(0x000000);
     private static final Color PANEL_BG = new Color(0xE0E0E0);
     private static final Color TABLE_BG = Color.WHITE;
     private static final Color TEXT_DARK = Color.BLACK;
     private static final Color ACCENT = new Color(0x2E2E5D);
 
-    public PurposePanel(int userId) {
+    public PurposePanel(int userId, ManageSearchFrame parentFrame) {
         this.userId = userId;
+        this.parentFrame = parentFrame;
         try {
             this.connection = DatabaseConnection.getConnection();
         } catch (SQLException e) {
@@ -32,18 +34,46 @@ public class PurposePanel extends JPanel {
 
     private void initializeUI() {
         setLayout(new GridBagLayout());
+        // Nút quay lại
+        JButton btnBack = new JButton("← Quay lại");
+        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnBack.setBackground(new Color(0x008BCF));
+        btnBack.setForeground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorderPainted(false);
+        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> {
+            if (parentFrame != null) parentFrame.showDashboard();
+        });
+        GridBagConstraints gbcBack = new GridBagConstraints();
+        gbcBack.gridx = 0; gbcBack.gridy = 0; gbcBack.anchor = GridBagConstraints.WEST; gbcBack.insets = new Insets(10, 10, 0, 0);
+        add(btnBack, gbcBack);
         // Bảng mục đích
         String[] columnNames = {"ID", "Tên mục đích", "Số tiền dự kiến", "Mô tả", "Trạng thái", "Sửa", "Xóa"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int row, int col) { return col == 5 || col == 6; }
         };
-        JTable table = new JTable(model);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        JTable table = new JTable(model) {
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                c.setForeground(Color.BLACK);
+                return c;
+            }
+        };
         table.setRowHeight(32);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 16));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 15));
+        table.getTableHeader().setBackground(new Color(0x00AEEF));
+        table.getTableHeader().setForeground(TEXT_DARK);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        table.setBorder(BorderFactory.createLineBorder(new Color(0xD3D3D3)));
+        table.setShowGrid(true);
+        table.setGridColor(new Color(0xD3D3D3));
+        table.setSelectionBackground(new Color(0xD3D3D3));
+        table.setSelectionForeground(Color.BLACK);
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(750, 220));
+        scrollPane.setPreferredSize(new Dimension(900, 220));
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(0xD3D3D3), 1, true));
         // Form thêm mục đích
         JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbcForm = new GridBagConstraints();
@@ -53,7 +83,7 @@ public class PurposePanel extends JPanel {
         JTextField amountField = new JTextField(10);
         JTextField descField = new JTextField(20);
         JButton btnAdd = new JButton("Thêm mục đích");
-        btnAdd.setBackground(new Color(0x2E2E5D));
+        btnAdd.setBackground(new Color(0x008BCF));
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnAdd.setFocusPainted(false);
@@ -76,11 +106,11 @@ public class PurposePanel extends JPanel {
         formPanel.add(btnAdd, gbcForm);
         // Đặt form và bảng vào panel chính
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0; gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(20, 0, 20, 0);
         add(formPanel, gbc);
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
@@ -141,7 +171,7 @@ public class PurposePanel extends JPanel {
         public ButtonRenderer(String label) {
             setOpaque(true);
             setText(label);
-            setBackground(new Color(0x2E2E5D));
+            setBackground(new Color(0x008BCF));
             setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.BOLD, 15));
             setFocusPainted(false);
@@ -169,7 +199,7 @@ public class PurposePanel extends JPanel {
             this.isEdit = isEdit;
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(0x2E2E5D));
+            button.setBackground(new Color(0x008BCF));
             button.setForeground(Color.WHITE);
             button.setFont(new Font("Segoe UI", Font.BOLD, 15));
             button.setFocusPainted(false);
