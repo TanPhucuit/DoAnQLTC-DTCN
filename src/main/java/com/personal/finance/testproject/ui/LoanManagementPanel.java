@@ -118,8 +118,8 @@ public class LoanManagementPanel extends JPanel {
         topPanel.add(btnRefresh);
         panel.add(topPanel, BorderLayout.NORTH);
 
-        // Chỉ hiển thị các trường: Lãi suất, Số kỳ, Số tiền/kỳ, Ngày trả, Số kỳ đã trả, Số tiền đã trả, Số tiền còn lại
-        String[] detailColumns = {"Lãi suất", "Số kỳ", "Số tiền/kỳ", "Ngày trả", "Số kỳ đã trả", "Số tiền đã trả", "Số tiền còn lại"};
+        // Chỉ hiển thị các trường: ID, Lãi suất, Số kỳ, Số tiền/kỳ, Ngày trả, Số kỳ đã trả, Số tiền đã trả, Số tiền còn lại
+        String[] detailColumns = {"ID", "Lãi suất", "Số kỳ", "Số tiền/kỳ", "Ngày trả", "Số kỳ đã trả", "Số tiền đã trả", "Số tiền còn lại"};
         detailModel = new DefaultTableModel(detailColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -275,6 +275,7 @@ public class LoanManagementPanel extends JPanel {
 
             while (rs.next()) {
                 Vector<Object> row = new Vector<>();
+                row.add(rs.getInt("LoanID"));
                 row.add(rs.getBigDecimal("interest").multiply(new BigDecimal("100")));
                 row.add(rs.getInt("num_term"));
                 row.add(rs.getBigDecimal("pay_per_term"));
